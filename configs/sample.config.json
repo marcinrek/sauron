@@ -2,7 +2,7 @@
     "comments": {
         "id":                  "Crawl id - used in output file name etc.",
         "startURL":            "Url to start crawl from",
-        "output":              "Crawl output method. Allowed values: console, csv",
+        "output":              "Crawl output method. Allowed values: console, csv, json, blank",
         "custom":              "Custom parsing actions settings",
         "allowedDomains":      "Only domains from this array will be crawled. Empty array will discard this check.",
         "allowedProtocols":    "Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.",
@@ -30,7 +30,7 @@
         "https:"
     ],
     "allowLinksFrom": {
-        "patter":        "^.*",
+        "pattern":       "^.*",
         "pathnameAllow": [],
         "pathnameDeny":  []
     },

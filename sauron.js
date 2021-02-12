@@ -1,7 +1,7 @@
 const fs = require('fs');
 const hlp = require('./src/helpers');
 const crw = require('./src/crawling');
-const out = require('./src/output');
+const { out, dumpDiscarder } = require('./src/output');
 
 const config = hlp.readConfigJSON(process.argv[2]);
 const custom = config.custom.useCustom ? require(config.custom.customFile) : null;
@@ -14,6 +14,7 @@ let counter = {
 
 let startTimestamp = hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss');
 let pagesToVisit = !urlList ? [config.startURL] : urlList;
+let discardedPages = [];
 let visitedPages = {};
 let outputData = {};
 
@@ -29,7 +30,11 @@ const crawl = () => {
         counter.crawled += 1;
 
         // Display info about which page is going to be crawled
-        console.log(`${counter.crawled} of ${counter.crawled + pagesToVisit.length - 1} [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
+        let finished = counter.crawled;
+        let total = counter.crawled + pagesToVisit.length - 1;
+        let percent = Math.round((finished / total) * 10000) / 100;
+
+        console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
 
         // Crawl page
         crw.visitPage(pageURL, config).then((response) => {
@@ -59,11 +64,11 @@ const crawl = () => {
             // Mark page as crawled
             visitedPages[pageURL] = true;
 
-            // Work on pagesToVisit only if crawled url matches patter
+            // Work on pagesToVisit only if crawled url matches pattern
             if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
 
                 // Add new links to list if it matches config.allowLinksFromPatter pattern
-                pagesToVisit = crw.updateCrawlList(pageData.links, pagesToVisit, visitedPages, config);
+                pagesToVisit = crw.updateCrawlList(pageData.links, pagesToVisit, visitedPages, discardedPages, config);
 
                 // Remove currently visited page from list
                 pagesToVisit.splice(pagesToVisit.indexOf(pageURL), 1);
@@ -82,9 +87,18 @@ const crawl = () => {
 
     // Crawling done
     } else {
+
+        // Print custom output if required
         if (config.custom.useCustom) {
             custom.out(config, startTimestamp);
         }
+
+        // Dump discarded URL list
+        if (discardedPages.length) {
+            dumpDiscarder(config, startTimestamp, discardedPages);
+        }
+
+        // Print generic output
         out(config, startTimestamp, outputData);
     }
 

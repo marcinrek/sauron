@@ -74,8 +74,34 @@ const jsonOutput = (visitedPages, startTimestamp, config) => {
 };
 
 /**
+ * Dump dicarded pages to file
+ * @param {object} config configuration data
+ * @param {string} startTimestamp timestamp string used in file outputs
+ * @param {array} discardedPages pages not crawled due to configuration
+ */
+const dumpDiscarder = (config, startTimestamp, discardedPages) => {
+    let output = JSON.stringify(discardedPages, null, 4);
+    const outputDir = './output/';
+    const fileName = config.id + '_' + startTimestamp + '_discardedURLs';
+    const filePath = outputDir + fileName + '.json';
+
+    // Create output directory if it doesn't exist
+    if (!fs.existsSync(outputDir)) {
+        console.log('Creating directory:', outputDir);
+        fs.mkdirSync(outputDir);
+    }
+
+    // Write JSON to disk
+    fs.writeFile(filePath, output, 'utf8', (err) => {
+        if (err) throw err;
+        console.log('Discarded URLs list: ', filePath);
+    });
+};
+
+
+/**
  * Switch between output methods
- * @param {string} method method picked
+ * @param {object} config method picked
  * @param {string} startTimestamp timestamp string used in file outputs
  * @param {object} visitedPages crawl results object
  */
@@ -105,4 +131,4 @@ const out = (config, startTimestamp, visitedPages) => {
 
 };
 
-module.exports = out;
+module.exports = { out, dumpDiscarder };

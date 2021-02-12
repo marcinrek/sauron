@@ -40,7 +40,7 @@ npm run serve:demo
         "https:"
     ],
     "allowLinksFrom": {
-        "patter":        "^.*",
+        "pattern":        "^.*",
         "pathnameAllow": [],
         "pathnameDeny":  []
     },
@@ -76,10 +76,19 @@ npm run serve:demo
 | ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check.               |
 | ```allowedProtocoles```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
 | ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that matche given requirements will be crawled.   |
-| ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled.   |
+| ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
 | ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
 | ```maxPages```      | ```number```  | Max pages to crawl. To have no limit set ```-1```   |
 | ```stripGET```      | ```boolean```  | Strip GET parameters from links   |
 | ```timeout```      | ```number```  | Single request timeout in ms   |
+
+## Changelog
+* v1.1.0
+    * fix pathnameAllow/Deny check
+    * fix pattern check
+    * fix typos in markup
+    * add colors to console dump
+    * add log for urls not crawled due to configuration
+    * add crawl progress in percent

@@ -1,3 +1,4 @@
+const colors = require('colors'); // eslint-disable-line
 const request = require('request-promise');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
@@ -65,18 +66,23 @@ const crw = {
      * @param {array} linkArray array of urls to add to the list
      * @param {array} pagesToVisit current list
      * @param {object} visitedPages pages already crawled data object
+     * @param {array} discardedPages pages that are discarded from crawling due to config
      * @param {json} config configuration json
      * @returns {array} updated array of urls to crawl
      */
-    updateCrawlList: (linkArray, pagesToVisit, visitedPages, config) => {
+    updateCrawlList: (linkArray, pagesToVisit, visitedPages, discardedPages, config) => {
         linkArray.forEach((url) => {
-            let sanitizedURL = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
+            let sanitizedURL              = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
             let urlAlreadyVisited         = (sanitizedURL in visitedPages);
             let urlInAllowedDomains       = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
             let urlInAllowedProtocols     = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
+            let validateCrawlLinks        = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
-            if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && crw.checkConfigConditions(sanitizedURL, config.crawlLinks)) {
+            if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
                 pagesToVisit.push(sanitizedURL);
+            } else if (!validateCrawlLinks) {
+                console.log(`Discarded due to crawlLinks config: ${sanitizedURL}`.magenta);
+                discardedPages.push(sanitizedURL);
             }
         });
 
@@ -188,7 +194,7 @@ const crw = {
         let inPath = false;
 
         pathnames.forEach((path) => {
-            if (pathname.indexOf(path) === 0) {
+            if (pathname.indexOf(path) !== -1) {
                 inPath = true;
             }
         });
@@ -203,11 +209,11 @@ const crw = {
      * @returns {boolean}
      */
     checkConfigConditions: (pageURL, configObj) => {
-        let patter        = new RegExp(configObj.pattern, 'g');
+        let pattern       = new RegExp(configObj.pattern, 'g');
         let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow) : true;
         let pathnameDeny  = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny) : false;
 
-        return (pageURL.match(patter) && pathnameAllow && !pathnameDeny);
+        return (pattern.test(pageURL) && pathnameAllow && !pathnameDeny);
     },
 
     /**
