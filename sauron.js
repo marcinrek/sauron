@@ -1,37 +1,94 @@
 const fs = require('fs');
 const hlp = require('./src/helpers');
 const crw = require('./src/crawling');
-const { out, dumpDiscarder } = require('./src/output');
+const {
+    out,
+    dumpDiscarder,
+    saveStatus,
+    createReport
+} = require('./src/output');
 
+// Load app settings
+const settings = JSON.parse(fs.readFileSync('./settings.json'));
+
+// Load crawler config
 const config = hlp.readConfigJSON(process.argv[2]);
+
+// Load crawler custom action config
 const custom = config.custom.useCustom ? require(config.custom.customFile) : null;
+
+// Load start url list
 const urlList = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3])) : false;
 
-let counter = {
-    limit: config.maxPages,
-    crawled: 0
+// Create app data object
+let appData = {
+    finished: false,
+    counter: {
+        limit: config.maxPages,
+        crawled: 0
+    },
+    startTimestamp: hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss'),
+    pagesToVisit: !urlList ? [config.startURL] : urlList,
+    discardedPages: [],
+    visitedPages: {},
+    outputData: {}
 };
 
-let startTimestamp = hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss');
-let pagesToVisit = !urlList ? [config.startURL] : urlList;
-let discardedPages = [];
-let visitedPages = {};
-let outputData = {};
+// Create output directory if it doesn't exist
+hlp.createDirIfRequired(settings.outputDirectory);
 
+// Check does save file exista and if so carry on from that point
+hlp.createDirIfRequired(settings.saveDirectory);
+let saveFiles = fs.readdirSync(settings.saveDirectory);
+
+// Error reading save directory
+if (!saveFiles.length) {
+    console.log('Save directory does not exist or is empty. Starting fresh ...'.cyan);
+
+// Save directory exists
+} else {
+    let filteredFiles = saveFiles.filter((fileName) => fileName.indexOf(`${config.id}_`) === 0);
+
+    // There is a proper save file
+    if (filteredFiles.length) {
+        let saveFilePath = filteredFiles[filteredFiles.length - 1];
+        let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}${saveFilePath}`));
+
+        // Rewrite data
+        if (!savedData.finished) {
+            appData = savedData;
+            console.log(`Reading save file: ${saveFilePath}`.green);
+        } else {
+            console.log(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`.cyan);
+        }
+
+    // There is no proper save file
+    } else {
+        console.log('Save directory exists but save file not found. Starting fresh ...'.cyan);
+    }
+
+}
+
+// Main crawl flow function
 const crawl = () => {
 
     // There is something to crawl AND limit not reached
-    if (pagesToVisit.length && (counter.limit !== counter.crawled)) {
-        let pageURL = pagesToVisit[0];
+    if (appData.pagesToVisit.length && (appData.counter.limit !== appData.counter.crawled)) {
+        let pageURL = appData.pagesToVisit[0];
         let responsePass;
         let errorResponse = false;
 
         // Inc counters
-        counter.crawled += 1;
+        appData.counter.crawled += 1;
+
+        // Save progress if required
+        if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1 && (appData.counter.limit !== appData.counter.crawled)) {
+            saveStatus(config, appData);
+        }
 
         // Display info about which page is going to be crawled
-        let finished = counter.crawled;
-        let total = counter.crawled + pagesToVisit.length - 1;
+        let finished = appData.counter.crawled;
+        let total = appData.counter.crawled + appData.pagesToVisit.length - 1;
         let percent = Math.round((finished / total) * 10000) / 100;
 
         console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
@@ -49,36 +106,37 @@ const crawl = () => {
         }).finally(() => {
 
             // Build page data object
-            let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, counter);
+            let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
 
             // Build custom response object
             if (config.custom.useCustom) {
-                custom.action(responsePass, errorResponse, pageURL, counter, config);
+                custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
             }
 
             // Save currently visited page data for output
-            if (crw.checkConfigConditions(pageURL, config.saveCrawlData)) {
-                outputData[pageURL] = pageData;
+            if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
+                appData.outputData[pageURL] = pageData;
             }
 
             // Mark page as crawled
-            visitedPages[pageURL] = true;
+            appData.visitedPages[pageURL] = true;
 
             // Work on pagesToVisit only if crawled url matches pattern
             if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
 
                 // Add new links to list if it matches config.allowLinksFromPatter pattern
-                pagesToVisit = crw.updateCrawlList(pageData.links, pagesToVisit, visitedPages, discardedPages, config);
+                appData.pagesToVisit = crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config);
 
                 // Remove currently visited page from list
-                pagesToVisit.splice(pagesToVisit.indexOf(pageURL), 1);
+                appData.pagesToVisit.splice(appData.pagesToVisit.indexOf(pageURL), 1);
 
                 // Strip duplicate entries
-                pagesToVisit = [...new Set(pagesToVisit)];
+                appData.pagesToVisit = [...new Set(appData.pagesToVisit)];
+                appData.discardedPages = [...new Set(appData.discardedPages)];
 
             } else {
                 // Remove currently visited page from list
-                pagesToVisit.splice(pagesToVisit.indexOf(pageURL), 1);
+                appData.pagesToVisit.splice(appData.pagesToVisit.indexOf(pageURL), 1);
             }
 
             // Crawl again
@@ -88,18 +146,27 @@ const crawl = () => {
     // Crawling done
     } else {
 
+        // Create final save
+        appData.finished = true;
+        saveStatus(config, appData);
+
         // Print custom output if required
         if (config.custom.useCustom) {
-            custom.out(config, startTimestamp);
+            custom.out(config, appData.startTimestamp);
         }
 
         // Dump discarded URL list
-        if (discardedPages.length) {
-            dumpDiscarder(config, startTimestamp, discardedPages);
+        if (appData.discardedPages.length) {
+            dumpDiscarder(config, appData.startTimestamp, appData.discardedPages);
         }
 
         // Print generic output
-        out(config, startTimestamp, outputData);
+        if (config.storeDefaultData) {
+            out(config, appData.startTimestamp, appData.outputData);
+        }
+
+        // Crawl report
+        createReport(config, appData);
     }
 
 };

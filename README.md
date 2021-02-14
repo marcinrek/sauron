@@ -60,6 +60,7 @@ npm run serve:demo
         "user":   "login",
         "pass":   "pass"
     },
+    "verbose": false,
     "maxPages": -1,
     "stripGET": false,
     "timeout":  5000
@@ -78,13 +79,23 @@ npm run serve:demo
 | ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that matche given requirements will be crawled.   |
 | ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
-| ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
+| ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
+| ```storeDefaultData```      | ```boolean```  | Store default data with links, statusCodes etc   |
+| ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
+| ```verbose```      | ```boolean```  | Print more output to console   |
 | ```maxPages```      | ```number```  | Max pages to crawl. To have no limit set ```-1```   |
 | ```stripGET```      | ```boolean```  | Strip GET parameters from links   |
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v1.2.0
+    * code cleanup
+    * added settings.json for application settings
+    * add option to disable storing default data like links, statusCodes etc.
+    * add option to save progress after every N pages crawled - this is then picked up automatically on next crawl from the same config file (by config.id)
+    * creat output and save folders on app start - remove check on each save
+    * added option for verbose output to console
 * v1.1.0
     * fix pathnameAllow/Deny check
     * fix pattern check

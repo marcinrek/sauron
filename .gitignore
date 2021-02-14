@@ -1,6 +1,7 @@
 configs/_*
 custom/_*
 output/
+save/*
 node_modules/
 *.lock
 *-lock.json

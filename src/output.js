@@ -1,6 +1,9 @@
-const ObjectsToCsv = require('objects-to-csv');
 const fs = require('fs');
+const ObjectsToCsv = require('objects-to-csv');
 const hlp = require('./helpers');
+
+// Load app settings
+const settings = JSON.parse(fs.readFileSync('./settings.json'));
 
 /**
  * Print output to console
@@ -19,9 +22,9 @@ const consoleOutput = (visitedPages) => {
 const csvOutput = (visitedPages, startTimestamp, config) => {
     let output = hlp.objToArr(visitedPages);
 
-    const outputDir = './output/';
-    const fileName = config.id + '_' + startTimestamp;
-    const filePath = outputDir + fileName + '.csv';
+    const outputDir = settings.outputDirectory;
+    const fileName = `${config.id}_${startTimestamp}`;
+    const filePath = `${outputDir}${fileName}.csv`;
 
     // Remove JSON syntax from CSV
     output.map((item) => {
@@ -31,12 +34,6 @@ const csvOutput = (visitedPages, startTimestamp, config) => {
         item.hash = item.hash.join('|');
         return item;
     });
-
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-        console.log('Creating directory:', outputDir);
-        fs.mkdirSync(outputDir);
-    }
 
     // Write CSV to disk
     new ObjectsToCsv(output).toDisk(filePath).then(() => {
@@ -55,16 +52,9 @@ const csvOutput = (visitedPages, startTimestamp, config) => {
  */
 const jsonOutput = (visitedPages, startTimestamp, config) => {
     let output = JSON.stringify(visitedPages, null, 4);
-
-    const outputDir = './output/';
-    const fileName = config.id + '_' + startTimestamp;
-    const filePath = outputDir + fileName + '.json';
-
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-        console.log('Creating directory:', outputDir);
-        fs.mkdirSync(outputDir);
-    }
+    const outputDir = settings.outputDirectory;
+    const fileName = `${config.id}_${startTimestamp}`;
+    const filePath = `${outputDir}${fileName}.json`;
 
     // Write JSON to disk
     fs.writeFile(filePath, output, 'utf8', (err) => {
@@ -81,15 +71,9 @@ const jsonOutput = (visitedPages, startTimestamp, config) => {
  */
 const dumpDiscarder = (config, startTimestamp, discardedPages) => {
     let output = JSON.stringify(discardedPages, null, 4);
-    const outputDir = './output/';
-    const fileName = config.id + '_' + startTimestamp + '_discardedURLs';
-    const filePath = outputDir + fileName + '.json';
-
-    // Create output directory if it doesn't exist
-    if (!fs.existsSync(outputDir)) {
-        console.log('Creating directory:', outputDir);
-        fs.mkdirSync(outputDir);
-    }
+    const outputDir = settings.outputDirectory;
+    const fileName = `${config.id}_${startTimestamp}_discardedURLs`;
+    const filePath = `${outputDir}${fileName}.json`;
 
     // Write JSON to disk
     fs.writeFile(filePath, output, 'utf8', (err) => {
@@ -98,10 +82,50 @@ const dumpDiscarder = (config, startTimestamp, discardedPages) => {
     });
 };
 
+/**
+ * Save progress to enable abort and continue
+ * @param {object} config config JSON
+ * @param {object} appData. object with all data to save as single JSON
+ */
+const saveStatus = (config, appData) => {
+    let output = JSON.stringify(appData);
+    const outputDir = settings.saveDirectory;
+    const fileName = `${config.id}_${appData.startTimestamp}`;
+    const filePath = `${outputDir}${fileName}.json`;
+
+    // Write JSON to disk
+    fs.writeFile(filePath, output, 'utf8', (err) => {
+        if (err) throw err;
+        console.log(`Save file: ${filePath}`.green);
+    });
+};
+
+/**
+ * Create crawl report
+ * @param {object} config config JSON
+ * @param {object} appData application data object
+ */
+const createReport = (config, appData) => {
+    const output = {
+        id: config.id,
+        startTimestamp: appData.startTimestamp,
+        pagesCrawled: appData.counter.crawled,
+        pagesDiscarded: appData.discardedPages.length
+    };
+    const outputDir = settings.outputDirectory;
+    const fileName = `${config.id}_${appData.startTimestamp}_report`;
+    const filePath = `${outputDir}${fileName}.json`;
+
+    // Write JSON to disk
+    fs.writeFile(filePath, JSON.stringify(output, null, 4), 'utf8', (err) => {
+        if (err) throw err;
+        console.log('Report: ', filePath);
+    });
+};
 
 /**
  * Switch between output methods
- * @param {object} config method picked
+ * @param {object} config config JSON
  * @param {string} startTimestamp timestamp string used in file outputs
  * @param {object} visitedPages crawl results object
  */
@@ -131,4 +155,9 @@ const out = (config, startTimestamp, visitedPages) => {
 
 };
 
-module.exports = { out, dumpDiscarder };
+module.exports = {
+    out,
+    dumpDiscarder,
+    saveStatus,
+    createReport
+};

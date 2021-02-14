@@ -9,8 +9,11 @@
         "allowLinksFrom":      "Only links that are found on a urls that matche given requirements will be crawled",
         "crawlLinks":          "Only links that matche given requirements will be crawled",
         "saveCrawlData":       "Only links that matche given requirements will be saved to output",
-        "requireValidSSLCert": "Check is SSL certificates valid",
         "httpAuth":            "Settings for basic authentication",
+        "requireValidSSLCert": "Check is SSL certificates valid",
+        "storeDefaultData":    "Store default data with links, statusCodes etc",
+        "saveStatusEach":      "Save status each N crawls to enable abort and continue later",
+        "verbose":             "Print more output to console",
         "maxPages":            "Max pages to crawl. To have no limit set -1",
         "stripGET":            "Strip GET parameters from links",
         "timeout":             "Single request timeout in ms"
@@ -44,13 +47,16 @@
         "pathnameAllow": [],
         "pathnameDeny":  []
     },
-    "requireValidSSLCert": false,
     "httpAuth": {
         "enable": false,
         "user":   "login",
         "pass":   "pass"
     },
-    "maxPages": -1,
+    "requireValidSSLCert": false,
+    "storeDefaultData": true,
+    "saveStatusEach": 1000,
+    "verbose":  false,
+    "maxPages": 1,
     "stripGET": false,
     "timeout":  5000
 }

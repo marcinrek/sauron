@@ -1,3 +1,4 @@
+const colors = require('colors'); // eslint-disable-line
 const fs = require('fs');
 const date = require('date-and-time');
 
@@ -24,7 +25,17 @@ module.exports = {
      * @param {object} obj object to convert
      * @returns {array} array of objects
      */
-    objToArr: (obj) => Object.values(obj)
+    objToArr: (obj) => Object.values(obj),
 
+    /**
+     * Create directory if it does not exist
+     * @param {string} dirName directory path
+     */
+    createDirIfRequired: (dirName) => {
+        if (!fs.existsSync(dirName)) {
+            console.log(`Creating directory: ${dirName}`.cyan);
+            fs.mkdirSync(dirName);
+        }
+    }
 
 };

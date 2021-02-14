@@ -71,6 +71,12 @@ const crw = {
      * @returns {array} updated array of urls to crawl
      */
     updateCrawlList: (linkArray, pagesToVisit, visitedPages, discardedPages, config) => {
+        let tempDiscardedPages = [];
+        let properLinksCount = 0;
+        let newLinksCount = config.verbose ? linkArray.length : 0;
+        let pagesToVisitCount = config.verbose ? pagesToVisit.length : 0;
+
+        // Loop new links
         linkArray.forEach((url) => {
             let sanitizedURL              = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
             let urlAlreadyVisited         = (sanitizedURL in visitedPages);
@@ -79,12 +85,23 @@ const crw = {
             let validateCrawlLinks        = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
             if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
+                properLinksCount += 1;
                 pagesToVisit.push(sanitizedURL);
             } else if (!validateCrawlLinks) {
-                console.log(`Discarded due to crawlLinks config: ${sanitizedURL}`.magenta);
+                if (config.verbose) tempDiscardedPages.push(sanitizedURL);
                 discardedPages.push(sanitizedURL);
             }
         });
+
+        // Print discarded urls info
+        if (tempDiscardedPages.length) {
+            console.log(`Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? (' +' + (tempDiscardedPages.length - 1) + ']') : ']'}`.magenta);
+        }
+
+        // Print links count
+        if (config.verbose) {
+            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${[...new Set(pagesToVisit)].length - pagesToVisitCount} `.cyan);
+        }
 
         return pagesToVisit;
     },
