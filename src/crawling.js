@@ -1,5 +1,6 @@
 const colors = require('colors'); // eslint-disable-line
-const request = require('request-promise');
+const request = require('request-promise').defaults({ jar: true });
+const tough = require('tough-cookie');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
 
@@ -12,6 +13,17 @@ const crw = {
      * @returns {objecy} page response
      */
     visitPage: (pageURL, config) => {
+        let cookiejar = request.jar();
+
+        // Cookies
+        if (config.cookies.length && config.cookieURL) {
+            config.cookies.forEach((cookie) => {
+                let cookieObj = new tough.Cookie(cookie);
+                cookiejar.setCookie(cookieObj.toString(), config.cookieURL);
+            });
+        }
+
+        // Options
         let options = {
             uri: pageURL,
             timeout: config.timeout,
@@ -19,9 +31,11 @@ const crw = {
             rejectUnauthorized: config.requireValidSSLCert,
             headers: {
                 'User-Agent': 'Sauron'
-            }
+            },
+            jar: cookiejar
         };
 
+        // HTTP Auth
         if (config.httpAuth.enable) {
             // let auth = new Buffer(config.httpAuth.user + ':' + config.httpAuth.pass).toString('base64');
             let auth = Buffer.from(config.httpAuth.user + ':' + config.httpAuth.pass).toString('base64');

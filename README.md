@@ -9,6 +9,8 @@ Crawler is designed to work as a test tool. It can extract all links from a give
 * extract all phone numbers from site
 
 ## Usage
+Starting from version 1.3.0 Node version >= 15 may be required.
+
 * crawl based on a config file
 ```
 node .\sauron.js .\sample.config.json 
@@ -60,6 +62,8 @@ npm run serve:demo
         "user":   "login",
         "pass":   "pass"
     },
+    "cookieURL": null,
+    "cookies": [],
     "verbose": false,
     "maxPages": -1,
     "stripGET": false,
@@ -80,6 +84,8 @@ npm run serve:demo
 | ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
+| ```cookieURL```       | ```string```  | URL for the cookie   |
+| ```cookies```       | ```array```  | Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie   |
 | ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
 | ```storeDefaultData```      | ```boolean```  | Store default data with links, statusCodes etc   |
 | ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
@@ -89,6 +95,9 @@ npm run serve:demo
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v1.3.0
+    * add option to send cookies with tough-cookie https://www.npmjs.com/package/tough-cookie
+    * Node version >= 15 may be required due to an issue with tough-cookie on Windows
 * v1.2.0
     * code cleanup
     * added settings.json for application settings

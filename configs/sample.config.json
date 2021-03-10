@@ -10,6 +10,8 @@
         "crawlLinks":          "Only links that matche given requirements will be crawled",
         "saveCrawlData":       "Only links that matche given requirements will be saved to output",
         "httpAuth":            "Settings for basic authentication",
+        "cookieURL":           "URL for the cookie",
+        "cookies":             "Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie",
         "requireValidSSLCert": "Check is SSL certificates valid",
         "storeDefaultData":    "Store default data with links, statusCodes etc",
         "saveStatusEach":      "Save status each N crawls to enable abort and continue later",
@@ -52,6 +54,8 @@
         "user":   "login",
         "pass":   "pass"
     },
+    "cookieURL": null,
+    "cookies": [],
     "requireValidSSLCert": false,
     "storeDefaultData": true,
     "saveStatusEach": 1000,
