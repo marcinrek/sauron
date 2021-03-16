@@ -22,7 +22,7 @@ const consoleOutput = (visitedPages) => {
 const csvOutput = (visitedPages, startTimestamp, config) => {
     let output = hlp.objToArr(visitedPages);
 
-    const outputDir = settings.outputDirectory;
+    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
     const fileName = `${config.id}_${startTimestamp}`;
     const filePath = `${outputDir}${fileName}.csv`;
 
@@ -52,7 +52,7 @@ const csvOutput = (visitedPages, startTimestamp, config) => {
  */
 const jsonOutput = (visitedPages, startTimestamp, config) => {
     let output = JSON.stringify(visitedPages, null, 4);
-    const outputDir = settings.outputDirectory;
+    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
     const fileName = `${config.id}_${startTimestamp}`;
     const filePath = `${outputDir}${fileName}.json`;
 
@@ -71,7 +71,7 @@ const jsonOutput = (visitedPages, startTimestamp, config) => {
  */
 const dumpDiscarder = (config, startTimestamp, discardedPages) => {
     let output = JSON.stringify(discardedPages, null, 4);
-    const outputDir = settings.outputDirectory;
+    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
     const fileName = `${config.id}_${startTimestamp}_discardedURLs`;
     const filePath = `${outputDir}${fileName}.json`;
 
@@ -112,7 +112,7 @@ const createReport = (config, appData) => {
         pagesCrawled: appData.counter.crawled,
         pagesDiscarded: appData.discardedPages.length
     };
-    const outputDir = settings.outputDirectory;
+    const outputDir = settings.outputDirectory + '/' + appData.startTimestamp + '/';
     const fileName = `${config.id}_${appData.startTimestamp}_report`;
     const filePath = `${outputDir}${fileName}.json`;
 

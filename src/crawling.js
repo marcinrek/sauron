@@ -218,15 +218,21 @@ const crw = {
      * Check is given url in an array of allowed pathnames
      * @param {string} url url to test
      * @param {string} pathname array to test agains
+     * @param {boolean} stripGET if false will look in whole of URL
      * @returns {boolean}
      */
-    urlInPathname: (url, pathnames) => {
+    urlInPathname: (url, pathnames, stripGET) => {
         let { pathname } = new URL(url);
         let inPath = false;
 
         pathnames.forEach((path) => {
             if (pathname.indexOf(path) !== -1) {
                 inPath = true;
+            }
+            if (!stripGET) {
+                if (url.indexOf(path) !== -1) {
+                    inPath = true;
+                }
             }
         });
 
@@ -241,8 +247,8 @@ const crw = {
      */
     checkConfigConditions: (pageURL, configObj) => {
         let pattern       = new RegExp(configObj.pattern, 'g');
-        let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow) : true;
-        let pathnameDeny  = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny) : false;
+        let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow, configObj.stripGET) : true;
+        let pathnameDeny  = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
 
         return (pattern.test(pageURL) && pathnameAllow && !pathnameDeny);
     },

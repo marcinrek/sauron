@@ -95,6 +95,9 @@ npm run serve:demo
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v1.4.0
+    * saves each output so separate directory under ./output with name equal to crawl start time
+    * when stripGET is enabled pathAllow/Deny is considered within the full URL including GET parameters
 * v1.3.0
     * add option to send cookies with tough-cookie https://www.npmjs.com/package/tough-cookie
     * Node version >= 15 may be required due to an issue with tough-cookie on Windows

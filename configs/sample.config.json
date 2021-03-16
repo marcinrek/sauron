@@ -59,8 +59,7 @@
     "requireValidSSLCert": false,
     "storeDefaultData": true,
     "saveStatusEach": 1000,
-    "verbose":  false,
-    "maxPages": 1,
+    "maxPages": -1,
     "stripGET": false,
     "timeout":  5000
 }

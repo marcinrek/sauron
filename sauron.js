@@ -150,6 +150,9 @@ const crawl = () => {
         appData.finished = true;
         saveStatus(config, appData);
 
+        // Creating output folder
+        hlp.createDirIfRequired(settings.outputDirectory + '/' + appData.startTimestamp);
+
         // Print custom output if required
         if (config.custom.useCustom) {
             custom.out(config, appData.startTimestamp);

@@ -2,6 +2,8 @@ const fs = require('fs');
 const ObjectsToCsv = require('objects-to-csv');
 const cheerio = require('cheerio');
 
+const settings = JSON.parse(fs.readFileSync('./settings.json'));
+
 const custom = {
 
     /**
@@ -52,7 +54,7 @@ const custom = {
      * @param {string} startTimestamp timestamp crawl started
      */
     out: (config, startTimestamp) => {
-        const outputDir = './output/';
+        const outputDir = `${settings.outputDirectory}${startTimestamp}/`;
         const fileName = config.id + '_' + startTimestamp + '_custom';
         const filePath = outputDir + fileName + '.csv';
 
