@@ -2,7 +2,7 @@ configs/_*
 custom/_*
 output/
 save/*
-lists/*
+lists/_*
 node_modules/
 *.lock
 *-lock.json

@@ -3,6 +3,7 @@
         "id":                  "Crawl id - used in output file name etc.",
         "startURL":            "Url to start crawl from",
         "output":              "Crawl output method. Allowed values: console, csv, json, blank",
+        "storeDefaultData":    "Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'",
         "custom":              "Custom parsing actions settings",
         "allowedDomains":      "Only domains from this array will be crawled. Empty array will discard this check.",
         "allowedProtocols":    "Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.",
@@ -13,16 +14,16 @@
         "cookieURL":           "URL for the cookie",
         "cookies":             "Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie",
         "requireValidSSLCert": "Check is SSL certificates valid",
-        "storeDefaultData":    "Store default data with links, statusCodes etc",
         "saveStatusEach":      "Save status each N crawls to enable abort and continue later",
         "verbose":             "Print more output to console",
         "maxPages":            "Max pages to crawl. To have no limit set -1",
         "stripGET":            "Strip GET parameters from links",
         "timeout":             "Single request timeout in ms"
     },
-    "id":             "m5500",
-    "startURL":       "http://127.0.0.1/",
-    "output":         "csv",
+    "id":               "m5500",
+    "startURL":         "http://127.0.0.1/",
+    "output":           "csv",
+    "storeDefaultData": true,
     "custom": {
         "useCustom": true,
         "customFile": "./custom/extract.images"
@@ -57,8 +58,8 @@
     "cookieURL": null,
     "cookies": [],
     "requireValidSSLCert": false,
-    "storeDefaultData": true,
     "saveStatusEach": 1000,
+    "verbose": false,
     "maxPages": -1,
     "stripGET": false,
     "timeout":  5000

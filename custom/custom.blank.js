@@ -7,6 +7,7 @@ const hlp = require('../src/helpers');
 const custom = {
 
     // Custom data placeholder
+    // This needs to be named "data" in order to save with "saveStatusEach"
     data: [
 
     ],

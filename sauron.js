@@ -31,7 +31,8 @@ let appData = {
     pagesToVisit: !urlList ? [config.startURL] : urlList,
     discardedPages: [],
     visitedPages: {},
-    outputData: {}
+    outputData: {},
+    customData: custom.data || []
 };
 
 // Create output directory if it doesn't exist
@@ -54,10 +55,22 @@ if (!saveFiles.length) {
         let saveFilePath = filteredFiles[filteredFiles.length - 1];
         let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}${saveFilePath}`));
 
-        // Rewrite data
+        // Rewrite data from save file
         if (!savedData.finished) {
-            appData = savedData;
+
+            // Display info about save data being loded
             console.log(`Reading save file: ${saveFilePath}`.green);
+
+            // Write new appData from save file
+            appData = savedData;
+
+            // Get custom data if present
+            if (custom) { custom.data = appData.customData; }
+            if (custom && config.verbose) {
+                console.log('Loaded custom.data from save:'.cyan);
+                console.log(custom.data);
+            }
+
         } else {
             console.log(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`.cyan);
         }
@@ -83,6 +96,11 @@ const crawl = () => {
 
         // Save progress if required
         if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1 && (appData.counter.limit !== appData.counter.crawled)) {
+
+            // Add custom data to appData for save
+            appData.customData = custom.data;
+
+            // Save status
             saveStatus(config, appData);
         }
 

@@ -56,7 +56,6 @@ npm run serve:demo
         "pathnameAllow": [],
         "pathnameDeny":  []
     },
-    "requireValidSSLCert": false,
     "httpAuth": {
         "enable": false,
         "user":   "login",
@@ -64,6 +63,9 @@ npm run serve:demo
     },
     "cookieURL": null,
     "cookies": [],
+    "requireValidSSLCert": false,
+    "storeDefaultData": true,
+    "saveStatusEach": 1000,
     "verbose": false,
     "maxPages": -1,
     "stripGET": false,
@@ -95,6 +97,9 @@ npm run serve:demo
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v1.4.5
+    * save custom.data with "saveStatusEach" - now when custom action has a "data" property, which can be an array or an object, it will be stored in the save file every N crawled URLs
+    * tidy sample config items position and descriptions
 * v1.4.0
     * saves each output so separate directory under ./output with name equal to crawl start time
     * when stripGET is enabled pathAllow/Deny is considered within the full URL including GET parameters
