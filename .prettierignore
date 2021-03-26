@@ -1,0 +1,8 @@
+configs/_*
+custom/_*
+output/
+save/*
+lists/*
+node_modules/
+*.lock
+*-lock.json

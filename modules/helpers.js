@@ -3,7 +3,6 @@ const fs = require('fs');
 const date = require('date-and-time');
 
 module.exports = {
-
     /**
      * Read config from a json file
      * @param {string} path
@@ -36,6 +35,5 @@ module.exports = {
             console.log(`Creating directory: ${dirName}`.cyan);
             fs.mkdirSync(dirName);
         }
-    }
-
+    },
 };
