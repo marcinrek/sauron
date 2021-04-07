@@ -1,11 +1,10 @@
 const colors = require('colors'); // eslint-disable-line
-const request = require('request-promise').defaults({ jar: true });
+const request = require('request-promise').defaults({jar: true});
 const tough = require('tough-cookie');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
 
 const crw = {
-
     /**
      * Crawl a single URL
      * @param {string} pageURL Url of the page to crawl
@@ -30,9 +29,9 @@ const crw = {
             resolveWithFullResponse: true,
             rejectUnauthorized: config.requireValidSSLCert,
             headers: {
-                'User-Agent': 'Sauron'
+                'User-Agent': 'Sauron',
             },
-            jar: cookiejar
+            jar: cookiejar,
         };
 
         // HTTP Auth
@@ -54,21 +53,21 @@ const crw = {
      * @returns {object} page data object
      */
     buildPageData: (response, isError, pageURL, counter) => {
-        let { statusCode } = response;
-        let pageBody   = response.body || response.message;
-        let pageLinks  = pageBody ? crw.getLinksFromBody(pageBody, pageURL) : null;
-        let pageTitle  = pageBody ? crw.getPageTitle(pageBody) : '';
-        let errorData  = isError ? ((response.hasOwnProperty('message') && statusCode !== 404) ? response.message : statusCode) : false;
+        let {statusCode} = response;
+        let pageBody = response.body || response.message;
+        let pageLinks = pageBody ? crw.getLinksFromBody(pageBody, pageURL) : null;
+        let pageTitle = pageBody ? crw.getPageTitle(pageBody) : '';
+        let errorData = isError ? (Object.prototype.hasOwnProperty.call(response, 'message') && statusCode !== 404 ? response.message : statusCode) : false;
         let pageData = {
-            id:     counter.crawled,
-            url:    pageURL,
-            title:  pageTitle,
+            id: counter.crawled,
+            url: pageURL,
+            title: pageTitle,
             status: statusCode,
-            links:  pageLinks ? pageLinks.url : [],
+            links: pageLinks ? pageLinks.url : [],
             mailto: pageLinks ? pageLinks.mailto : [],
-            tel:    pageLinks ? pageLinks.tel : [],
-            hash:   pageLinks ? pageLinks.hash : [],
-            error:  errorData
+            tel: pageLinks ? pageLinks.tel : [],
+            hash: pageLinks ? pageLinks.hash : [],
+            error: errorData,
         };
 
         // Construct page details object
@@ -92,11 +91,11 @@ const crw = {
 
         // Loop new links
         linkArray.forEach((url) => {
-            let sanitizedURL              = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
-            let urlAlreadyVisited         = visitedPages.has(sanitizedURL);
-            let urlInAllowedDomains       = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
-            let urlInAllowedProtocols     = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
-            let validateCrawlLinks        = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
+            let sanitizedURL = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
+            let urlAlreadyVisited = visitedPages.has(sanitizedURL);
+            let urlInAllowedDomains = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
+            let urlInAllowedProtocols = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
+            let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
             if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
                 properLinksCount += 1;
@@ -109,7 +108,9 @@ const crw = {
 
         // Print discarded urls info
         if (tempDiscardedPages.length) {
-            console.log(`Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? (' +' + (tempDiscardedPages.length - 1) + ']') : ']'}`.magenta);
+            console.log(
+                `Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? ' +' + (tempDiscardedPages.length - 1) + ']' : ']'}`.magenta,
+            );
         }
 
         // Print links count
@@ -167,7 +168,6 @@ const crw = {
         links.hash = [...new Set(links.hash)];
 
         return links;
-
     },
 
     /**
@@ -198,7 +198,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInDomains: (url, domains) => {
-        let { hostname } = new URL(url);
+        let {hostname} = new URL(url);
 
         return domains.indexOf(hostname) !== -1 ? true : false;
     },
@@ -210,7 +210,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInProto: (url, protocols) => {
-        let { protocol } = new URL(url);
+        let {protocol} = new URL(url);
         return protocols.indexOf(protocol) !== -1 ? true : false;
     },
 
@@ -222,7 +222,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInPathname: (url, pathnames, stripGET) => {
-        let { pathname } = new URL(url);
+        let {pathname} = new URL(url);
         let inPath = false;
 
         pathnames.forEach((path) => {
@@ -246,11 +246,11 @@ const crw = {
      * @returns {boolean}
      */
     checkConfigConditions: (pageURL, configObj) => {
-        let pattern       = new RegExp(configObj.pattern, 'g');
+        let pattern = new RegExp(configObj.pattern, 'g');
         let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow, configObj.stripGET) : true;
-        let pathnameDeny  = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
+        let pathnameDeny = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
 
-        return (pattern.test(pageURL) && pathnameAllow && !pathnameDeny);
+        return pattern.test(pageURL) && pathnameAllow && !pathnameDeny;
     },
 
     /**
@@ -277,8 +277,7 @@ const crw = {
         }
 
         return url;
-    }
-
+    },
 };
 
 module.exports = crw;

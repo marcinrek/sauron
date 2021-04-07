@@ -90,9 +90,8 @@ const dumpDiscarder = (config, startTimestamp, discardedPages) => {
  * @param {object} appData. object with all data to save as single JSON
  */
 const saveStatus = (config, appData) => {
-    
     // Change Set to Array
-    let output = Object.assign({}, appData)
+    let output = Object.assign({}, appData);
     output.pagesToVisit = [...output.pagesToVisit];
     output.discardedPages = [...output.discardedPages];
     output.visitedPages = [...output.visitedPages];
