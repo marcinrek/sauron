@@ -64,79 +64,19 @@ if (!saveFiles.length) {
     }
 }
 
-// Single page crawl
-const singleCrawl = (pageURL, config) => {
-    let responsePass;
-    let errorResponse = false;
-
-    return new Promise((resolve) => {
-        crw.visitPage(pageURL, config)
-            .then((response) => {
-                responsePass = response;
-            })
-            .catch((response) => {
-                errorResponse = true;
-                responsePass = response;
-            })
-            .finally(() => {
-                // Build page data object
-                let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
-
-                // Build custom response object
-                if (config.custom.useCustom) {
-                    custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
-                }
-
-                // Save currently visited page data for output
-                if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
-                    appData.outputData[pageURL] = pageData;
-                }
-
-                // Mark page as crawled
-                appData.visitedPages.add(pageURL);
-
-                // Work on pagesToVisit only if crawled url matches pattern
-                if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
-                    // Add new links to list if it matches config.allowLinksFromPatter pattern
-                    crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) => appData.pagesToVisit.add(url));
-                }
-
-                // Remove currently visited page from list
-                appData.pagesToVisit.delete(pageURL);
-
-                // Inc counters
-                appData.counter.crawled += 1;
-
-                // // Display info about which page is going to be crawled
-                let finished = appData.counter.crawled;
-                let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
-                let percent = Math.round((finished / total) * 10000) / 100;
-                console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
-
-                // Mark that save is required
-                if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
-                    appData.saveRequired = true;
-                }
-
-                // Resolve this crawl
-                resolve();
-            });
-    });
-};
-
 // Main crawl flow function
 const crawl = () => {
     // There is something to crawl AND limit not reached
     if (appData.pagesToVisit.size && appData.counter.limit !== appData.counter.crawled) {
         // First request
         let pageURL = appData.pagesToVisit.values().next().value;
-        let c1 = singleCrawl(pageURL, config);
+        let c1 = crw.singleCrawl(pageURL, config, appData, custom);
 
         // Remaining requests
         let urls = hlp.getNextNUrls(appData.pagesToVisit, config.requestCount - 1);
 
         // All requests resolved
-        Promise.all(hlp.buildCrawlPromisArray(c1, urls, singleCrawl, config)).then(() => {
+        Promise.all(hlp.buildCrawlPromisArray(c1, urls, crw.singleCrawl, config, appData, custom)).then(() => {
             // Save progress if required
             if (appData.saveRequired) {
                 // Add custom data to appData for save

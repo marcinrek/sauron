@@ -3,8 +3,71 @@ const request = require('request-promise').defaults({jar: true});
 const tough = require('tough-cookie');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
+const hlp = require('./helpers');
 
 const crw = {
+    // Single page crawl
+    singleCrawl: (pageURL, config, appData, custom) => {
+        let responsePass;
+        let errorResponse = false;
+
+        return new Promise((resolve) => {
+            crw.visitPage(pageURL, config)
+                .then((response) => {
+                    responsePass = response;
+                })
+                .catch((response) => {
+                    errorResponse = true;
+                    responsePass = response;
+                })
+                .finally(() => {
+                    // Build page data object
+                    let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
+
+                    // Build custom response object
+                    if (config.custom.useCustom) {
+                        custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
+                    }
+
+                    // Save currently visited page data for output
+                    if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
+                        appData.outputData[pageURL] = pageData;
+                    }
+
+                    // Mark page as crawled
+                    appData.visitedPages.add(pageURL);
+
+                    // Work on pagesToVisit only if crawled url matches pattern
+                    if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
+                        // Add new links to list if it matches config.allowLinksFromPatter pattern
+                        crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) =>
+                            appData.pagesToVisit.add(url),
+                        );
+                    }
+
+                    // Remove currently visited page from list
+                    appData.pagesToVisit.delete(pageURL);
+
+                    // Inc counters
+                    appData.counter.crawled += 1;
+
+                    // // Display info about which page is going to be crawled
+                    let finished = appData.counter.crawled;
+                    let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
+                    let percent = Math.round((finished / total) * 10000) / 100;
+                    console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
+
+                    // Mark that save is required
+                    if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
+                        appData.saveRequired = true;
+                    }
+
+                    // Resolve this crawl
+                    resolve();
+                });
+        });
+    },
+
     /**
      * Crawl a single URL
      * @param {string} pageURL Url of the page to crawl

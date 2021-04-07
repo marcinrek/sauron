@@ -66,13 +66,15 @@ module.exports = {
      * @param {array} urls array of urls to be called in singleCrawl
      * @param {promise} singleCrawl single crawl function that returns a promise
      * @param {object} config configuration object
+     * @param {object} appData application data object
+     * @param {object} custom custom action object
      * @returns {array} array of promises
      */
-    buildCrawlPromisArray: (c1, urls, singleCrawl, config) => {
+    buildCrawlPromisArray: (c1, urls, singleCrawl, config, appData, custom) => {
         let promiseArray = [c1];
 
         urls.forEach((url) => {
-            promiseArray.push(singleCrawl(url, config));
+            promiseArray.push(singleCrawl(url, config, appData, custom));
         });
 
         return promiseArray;
