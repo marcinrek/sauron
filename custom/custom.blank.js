@@ -1,16 +1,13 @@
-const fs = require('fs');
-const ObjectsToCsv = require('objects-to-csv');
-const cheerio = require('cheerio');
-const URL = require('url-parse');
-const hlp = require('../src/helpers');
+// const fs = require('fs');
+// const ObjectsToCsv = require('objects-to-csv');
+// const cheerio = require('cheerio');
+// const URL = require('url-parse');
+// const hlp = require('../src/helpers');
 
 const custom = {
-
     // Custom data placeholder
     // This needs to be named "data" in order to save with "saveStatusEach"
-    data: [
-
-    ],
+    data: [],
 
     /**
      * Custom action to be taken with each crawled page
@@ -21,7 +18,7 @@ const custom = {
      * @param {json} config configuration json
      */
     action: (response, errorResponse, pageURL, counter, config) => {
-        // console.log('custom.action();');
+        console.log(`custom.action(); called with response->${response}, errorResponse->${errorResponse}, pageURL->${pageURL}, counter->${counter}, config->${config}`);
     },
 
     /**
@@ -30,8 +27,8 @@ const custom = {
      * @param {string} startTimestamp timestamp crawl started
      */
     out: (config, startTimestamp) => {
-        // console.log('custom.out();');
-    }
+        console.log(`custom.out(); called with config->${config}, startTimestamp->${startTimestamp}`);
+    },
 };
 
 module.exports = custom;

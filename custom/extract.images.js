@@ -5,7 +5,6 @@ const cheerio = require('cheerio');
 const settings = JSON.parse(fs.readFileSync('./settings.json'));
 
 const custom = {
-
     /**
      * Get images from response and return array of src
      * @param {object} response request response object
@@ -25,9 +24,7 @@ const custom = {
     },
 
     // Custom data placeholder
-    data: [
-
-    ],
+    data: [],
 
     /**
      * Custom action to be taken with each crawled page
@@ -40,7 +37,7 @@ const custom = {
     action: (response, errorResponse, pageURL) => {
         const images = {
             page: pageURL,
-            src: custom.getImageURL(response).join(',')
+            src: custom.getImageURL(response).join(','),
         };
 
         if (images.src.length) {
@@ -65,12 +62,15 @@ const custom = {
         }
 
         // Write CSV to disk
-        new ObjectsToCsv(custom.data).toDisk(filePath).then(() => {
-            console.log('Custom output file: ', filePath);
-        }).catch((err) => {
-            throw err;
-        });
-    }
+        new ObjectsToCsv(custom.data)
+            .toDisk(filePath)
+            .then(() => {
+                console.log('Custom output file: ', filePath);
+            })
+            .catch((err) => {
+                throw err;
+            });
+    },
 };
 
 module.exports = custom;
