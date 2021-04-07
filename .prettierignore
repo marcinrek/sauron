@@ -1,3 +1,4 @@
+*.md
 configs/_*
 custom/_*
 output/

@@ -92,6 +92,7 @@ npm run serve:demo
 | ```storeDefaultData```      | ```boolean```  | Store default data with links, statusCodes etc   |
 | ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
 | ```verbose```      | ```boolean```  | Print more output to console   |
+| ```requestCount```      | ```number```  | Number of requests to be run in one batch   |
 | ```maxPages```      | ```number```  | Max pages to crawl. To have no limit set ```-1```   |
 | ```stripGET```      | ```boolean```  | Strip GET parameters from links   |
 | ```timeout```      | ```number```  | Single request timeout in ms   |

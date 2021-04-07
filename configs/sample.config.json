@@ -16,6 +16,7 @@
     "requireValidSSLCert": "Check is SSL certificates valid",
     "saveStatusEach": "Save status each N crawls to enable abort and continue later",
     "verbose": "Print more output to console",
+    "requestCount": "Number of requests to be run in one batch",
     "maxPages": "Max pages to crawl. To have no limit set -1",
     "stripGET": "Strip GET parameters from links",
     "timeout": "Single request timeout in ms"
@@ -53,8 +54,9 @@
   "cookieURL": null,
   "cookies": [],
   "requireValidSSLCert": false,
-  "saveStatusEach": 1000,
+  "saveStatusEach": 3,
   "verbose": false,
+  "requestCount": 4,
   "maxPages": -1,
   "stripGET": false,
   "timeout": 5000

@@ -36,4 +36,45 @@ module.exports = {
             fs.mkdirSync(dirName);
         }
     },
+
+    /**
+     * Get next N urls from pagesToVisit Set and return it as an array
+     * @param {set} pagesToVisit appData.pagesToVisit Set
+     * @param {number} count number of next N urls
+     * @returns {array} array of next N urls
+     */
+    getNextNUrls: (pagesToVisit, count) => {
+        let i = 0;
+        let urls = [];
+
+        for (let it = pagesToVisit.values(), val = null; (val = it.next().value); ) {
+            i++;
+            if (i > 1) {
+                urls.push(val);
+            }
+            if (i > count) {
+                break;
+            }
+        }
+
+        return urls;
+    },
+
+    /**
+     * Create array of promises with crawl requests
+     * @param {promise} c1 first crawl promise
+     * @param {array} urls array of urls to be called in singleCrawl
+     * @param {promise} singleCrawl single crawl function that returns a promise
+     * @param {object} config configuration object
+     * @returns {array} array of promises
+     */
+    buildCrawlPromisArray: (c1, urls, singleCrawl, config) => {
+        let promiseArray = [c1];
+
+        urls.forEach((url) => {
+            promiseArray.push(singleCrawl(url, config));
+        });
+
+        return promiseArray;
+    },
 };
