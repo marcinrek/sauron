@@ -87,23 +87,23 @@ const crw = {
     updateCrawlList: (linkArray, pagesToVisit, visitedPages, discardedPages, config) => {
         let tempDiscardedPages = [];
         let properLinksCount = 0;
-        let newLinksCount = config.verbose ? linkArray.length : 0;
-        let pagesToVisitCount = config.verbose ? pagesToVisit.length : 0;
+        let newLinksCount = linkArray.length;
+        let pagesToVisitCount = pagesToVisit.size;
 
         // Loop new links
         linkArray.forEach((url) => {
             let sanitizedURL              = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
-            let urlAlreadyVisited         = (sanitizedURL in visitedPages);
+            let urlAlreadyVisited         = visitedPages.has(sanitizedURL);
             let urlInAllowedDomains       = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
             let urlInAllowedProtocols     = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
             let validateCrawlLinks        = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
             if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
                 properLinksCount += 1;
-                pagesToVisit.push(sanitizedURL);
+                pagesToVisit.add(sanitizedURL);
             } else if (!validateCrawlLinks) {
                 if (config.verbose) tempDiscardedPages.push(sanitizedURL);
-                discardedPages.push(sanitizedURL);
+                discardedPages.add(sanitizedURL);
             }
         });
 
@@ -114,7 +114,7 @@ const crw = {
 
         // Print links count
         if (config.verbose) {
-            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${[...new Set(pagesToVisit)].length - pagesToVisitCount} `.cyan);
+            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `.cyan);
         }
 
         return pagesToVisit;

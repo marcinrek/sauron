@@ -88,13 +88,19 @@ const dumpDiscarder = (config, startTimestamp, discardedPages) => {
  * @param {object} appData. object with all data to save as single JSON
  */
 const saveStatus = (config, appData) => {
-    let output = JSON.stringify(appData);
+    
+    // Change Set to Array
+    let output = Object.assign({}, appData)
+    output.pagesToVisit = [...output.pagesToVisit];
+    output.discardedPages = [...output.discardedPages];
+    output.visitedPages = [...output.visitedPages];
+
     const outputDir = settings.saveDirectory;
     const fileName = `${config.id}_${appData.startTimestamp}`;
     const filePath = `${outputDir}${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, output, 'utf8', (err) => {
+    fs.writeFile(filePath, JSON.stringify(output), 'utf8', (err) => {
         if (err) throw err;
         console.log(`Save file: ${filePath}`.green);
     });

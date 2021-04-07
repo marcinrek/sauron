@@ -7,6 +7,11 @@ const {
     saveStatus,
     createReport
 } = require('./src/output');
+const {
+    createAppData,
+    appDateFromSaved
+} = require('./src/appData');
+
 
 // Load app settings
 const settings = JSON.parse(fs.readFileSync('./settings.json'));
@@ -21,19 +26,7 @@ const custom = config.custom.useCustom ? require(config.custom.customFile) : nul
 const urlList = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3])) : false;
 
 // Create app data object
-let appData = {
-    finished: false,
-    counter: {
-        limit: config.maxPages,
-        crawled: 0
-    },
-    startTimestamp: hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss'),
-    pagesToVisit: !urlList ? [config.startURL] : urlList,
-    discardedPages: [],
-    visitedPages: {},
-    outputData: {},
-    customData: custom.data || []
-};
+let appData = createAppData(config, hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss'), urlList, custom);
 
 // Create output directory if it doesn't exist
 hlp.createDirIfRequired(settings.outputDirectory);
@@ -62,7 +55,7 @@ if (!saveFiles.length) {
             console.log(`Reading save file: ${saveFilePath}`.green);
 
             // Write new appData from save file
-            appData = savedData;
+            appData = appDateFromSaved(savedData);
 
             // Get custom data if present
             if (custom) { custom.data = appData.customData; }
@@ -86,8 +79,8 @@ if (!saveFiles.length) {
 const crawl = () => {
 
     // There is something to crawl AND limit not reached
-    if (appData.pagesToVisit.length && (appData.counter.limit !== appData.counter.crawled)) {
-        let pageURL = appData.pagesToVisit[0];
+    if (appData.pagesToVisit.size && (appData.counter.limit !== appData.counter.crawled)) {
+        let pageURL = appData.pagesToVisit.values().next().value;
         let responsePass;
         let errorResponse = false;
 
@@ -106,7 +99,7 @@ const crawl = () => {
 
         // Display info about which page is going to be crawled
         let finished = appData.counter.crawled;
-        let total = appData.counter.crawled + appData.pagesToVisit.length - 1;
+        let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
         let percent = Math.round((finished / total) * 10000) / 100;
 
         console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
@@ -137,25 +130,18 @@ const crawl = () => {
             }
 
             // Mark page as crawled
-            appData.visitedPages[pageURL] = true;
+            appData.visitedPages.add(pageURL);
 
             // Work on pagesToVisit only if crawled url matches pattern
             if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
 
                 // Add new links to list if it matches config.allowLinksFromPatter pattern
-                appData.pagesToVisit = crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config);
+                crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach(url=>appData.pagesToVisit.add(url));
 
-                // Remove currently visited page from list
-                appData.pagesToVisit.splice(appData.pagesToVisit.indexOf(pageURL), 1);
-
-                // Strip duplicate entries
-                appData.pagesToVisit = [...new Set(appData.pagesToVisit)];
-                appData.discardedPages = [...new Set(appData.discardedPages)];
-
-            } else {
-                // Remove currently visited page from list
-                appData.pagesToVisit.splice(appData.pagesToVisit.indexOf(pageURL), 1);
-            }
+            } 
+            
+            // Remove currently visited page from list
+            appData.pagesToVisit.delete(pageURL);
 
             // Crawl again
             crawl();
@@ -177,7 +163,7 @@ const crawl = () => {
         }
 
         // Dump discarded URL list
-        if (appData.discardedPages.length) {
+        if (appData.discardedPages.size) {
             dumpDiscarder(config, appData.startTimestamp, appData.discardedPages);
         }
 

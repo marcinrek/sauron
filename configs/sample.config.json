@@ -59,7 +59,7 @@
     "cookies": [],
     "requireValidSSLCert": false,
     "saveStatusEach": 1000,
-    "verbose": false,
+    "verbose": true,
     "maxPages": -1,
     "stripGET": false,
     "timeout":  5000
