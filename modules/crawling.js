@@ -336,7 +336,11 @@ const crw = {
      */
     stripGET: (url) => {
         if (url.indexOf('?') !== -1) {
-            return url.split('?')[0];
+            let hash = '';
+            if (url.indexOf('#') !== -1) {
+                hash = `#${url.split('#')[1]}`;
+            }
+            return `${url.split('?')[0]}${hash}`;
         }
 
         return url;

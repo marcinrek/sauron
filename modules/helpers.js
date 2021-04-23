@@ -31,6 +31,7 @@ module.exports = {
      * @param {string} dirName directory path
      */
     createDirIfRequired: (dirName) => {
+        /* istanbul ignore next */
         if (!fs.existsSync(dirName)) {
             console.log(`Creating directory: ${dirName}`.cyan);
             fs.mkdirSync(dirName);

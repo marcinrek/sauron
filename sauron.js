@@ -26,7 +26,7 @@ hlp.createDirIfRequired(settings.outputDirectory);
 hlp.createDirIfRequired(settings.saveDirectory);
 let saveFiles = fs.readdirSync(settings.saveDirectory);
 
-// Save
+// Load save data
 if (!saveFiles.length) {
     // Error reading save directory
     console.log('Save directory does not exist or is empty. Starting fresh ...'.cyan);
