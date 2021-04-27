@@ -66,8 +66,8 @@ if (!saveFiles.length) {
 
 // Main crawl flow function
 const crawl = () => {
-    // There is something to crawl AND limit not reached
-    if (appData.pagesToVisit.size && appData.counter.limit !== appData.counter.crawled) {
+    // There is something to crawl AND (limit not reached OR there is no limit)
+    if (appData.pagesToVisit.size && (appData.counter.limit >= appData.counter.crawled || appData.counter.limit === -1)) {
         // First request
         let pageURL = appData.pagesToVisit.values().next().value;
         let c1 = crw.singleCrawl(pageURL, config, appData, custom);
