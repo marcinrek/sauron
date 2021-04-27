@@ -251,7 +251,12 @@ const crw = {
      */
     relToAbs: (relUrl, parentURL) => {
         let url = new URL(parentURL);
-        return url.protocol + '//' + url.hostname + relUrl;
+
+        if (relUrl[0] === '/') {
+            return `${url.protocol}//${url.hostname}${relUrl}`;
+        } else {
+            return `${url.protocol}//${url.hostname}${url.pathname}/${relUrl}`;
+        }
     },
 
     /**

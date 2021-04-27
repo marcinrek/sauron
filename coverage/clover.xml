@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1619207095664" clover="3.2.0">
-  <project timestamp="1619207095664" name="All files">
-    <metrics statements="148" coveredstatements="48" conditionals="93" coveredconditionals="14" methods="35" coveredmethods="10" elements="276" coveredelements="72" complexity="0" loc="148" ncloc="148" packages="1" files="3" classes="3"/>
+<coverage generated="1619546931630" clover="3.2.0">
+  <project timestamp="1619546931631" name="All files">
+    <metrics statements="148" coveredstatements="61" conditionals="93" coveredconditionals="26" methods="35" coveredmethods="13" elements="276" coveredelements="100" complexity="0" loc="148" ncloc="148" packages="1" files="3" classes="3"/>
     <file name="appData.js" path="C:\Users\mrek8\Projekty\Apps\sauron\modules\appData.js">
       <metrics statements="9" coveredstatements="9" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
       <line num="9" count="1" type="stmt"/>
@@ -15,7 +15,7 @@
       <line num="39" count="1" type="stmt"/>
     </file>
     <file name="crawling.js" path="C:\Users\mrek8\Projekty\Apps\sauron\modules\crawling.js">
-      <metrics statements="117" coveredstatements="17" conditionals="85" coveredconditionals="6" methods="26" coveredmethods="2"/>
+      <metrics statements="117" coveredstatements="30" conditionals="85" coveredconditionals="18" methods="26" coveredmethods="5"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
       <line num="3" count="1" type="stmt"/>
@@ -110,19 +110,19 @@
       <line num="266" count="0" type="cond" truecount="0" falsecount="2"/>
       <line num="276" count="0" type="stmt"/>
       <line num="277" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="288" count="0" type="stmt"/>
-      <line num="289" count="0" type="stmt"/>
-      <line num="291" count="0" type="stmt"/>
-      <line num="292" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="293" count="0" type="stmt"/>
-      <line num="295" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="296" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="297" count="0" type="stmt"/>
-      <line num="302" count="0" type="stmt"/>
-      <line num="312" count="0" type="stmt"/>
-      <line num="313" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="314" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="316" count="0" type="cond" truecount="0" falsecount="3"/>
+      <line num="288" count="20" type="stmt"/>
+      <line num="289" count="20" type="stmt"/>
+      <line num="291" count="20" type="stmt"/>
+      <line num="292" count="33" type="cond" truecount="2" falsecount="0"/>
+      <line num="293" count="10" type="stmt"/>
+      <line num="295" count="33" type="cond" truecount="2" falsecount="0"/>
+      <line num="296" count="27" type="cond" truecount="2" falsecount="0"/>
+      <line num="297" count="9" type="stmt"/>
+      <line num="302" count="20" type="stmt"/>
+      <line num="312" count="8" type="stmt"/>
+      <line num="313" count="8" type="cond" truecount="2" falsecount="0"/>
+      <line num="314" count="8" type="cond" truecount="1" falsecount="1"/>
+      <line num="316" count="8" type="cond" truecount="3" falsecount="0"/>
       <line num="325" count="3" type="cond" truecount="2" falsecount="0"/>
       <line num="326" count="1" type="stmt"/>
       <line num="329" count="2" type="stmt"/>
