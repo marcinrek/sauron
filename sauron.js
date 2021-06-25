@@ -79,14 +79,14 @@ const crawl = () => {
         Promise.all(hlp.buildCrawlPromisArray(c1, urls, crw.singleCrawl, config, appData, custom)).then(() => {
             // Save progress if required
             if (appData.saveRequired) {
+                // Change flag
+                appData.saveRequired = false;
+
                 // Add custom data to appData for save
                 appData.customData = custom.data;
 
                 // Save status
                 saveStatus(config, appData);
-
-                // Change flag
-                appData.saveRequired = false;
             }
 
             // Repeat crawl cycle
