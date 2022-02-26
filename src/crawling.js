@@ -188,7 +188,7 @@ const crw = {
      */
     relToAbs: (relUrl, parentURL) => {
         let url = new URL(parentURL);
-        return url.protocol + '//' + url.hostname + relUrl;
+        return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `:${url.port}` : ''}${relUrl}`;
     },
 
     /**
