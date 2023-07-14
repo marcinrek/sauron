@@ -28,7 +28,7 @@
   "storeDefaultData": true,
   "custom": {
     "useCustom": true,
-    "customFile": "./custom/extract.images"
+    "customFile": "extract.images"
   },
   "allowedDomains": ["127.0.0.1"],
   "allowedProtocols": ["http:", "https:"],

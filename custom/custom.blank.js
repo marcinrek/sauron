@@ -25,9 +25,10 @@ const custom = {
      * Custom output function
      * @param {json} config configuration json
      * @param {string} startTimestamp timestamp crawl started
+     * @param {string} outputPath out directory path
      */
-    out: (config, startTimestamp) => {
-        console.log(`custom.out(); called with config->${config}, startTimestamp->${startTimestamp}`);
+    out: (config, startTimestamp, outputPath) => {
+        console.log(`custom.out(); called with config->${config}, startTimestamp->${startTimestamp}, outDirPath->${outputPath}/${startTimestamp}/`);
     },
 };
 

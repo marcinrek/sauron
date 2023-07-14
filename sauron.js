@@ -5,13 +5,14 @@ const {out, dumpDiscarder, saveStatus, createReport} = require('./modules/output
 const {createAppData, appDateFromSaved} = require('./modules/appData');
 
 // Load app settings
-const settings = JSON.parse(fs.readFileSync('./settings.json'));
+const cwd = process.cwd();
+const settings = require(`${cwd}/sauron.settings.js`);
 
 // Load crawler config
 const config = hlp.readConfigJSON(process.argv[2]);
 
 // Load crawler custom action config
-const custom = config.custom.useCustom ? require(config.custom.customFile) : null;
+const custom = config.custom.useCustom ? require(`${cwd}/${settings.customDirectory}${config.custom.customFile}`) : null;
 
 // Load start url list
 const urlList = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3])) : false;
@@ -24,7 +25,8 @@ hlp.createDirIfRequired(settings.outputDirectory);
 
 // Check does save file exista and if so carry on from that point
 hlp.createDirIfRequired(settings.saveDirectory);
-let saveFiles = fs.readdirSync(settings.saveDirectory);
+hlp.createDirIfRequired(`${settings.saveDirectory}/${config.id}`);
+let saveFiles = fs.readdirSync(`${settings.saveDirectory}/${config.id}`);
 
 // Load save data
 if (!saveFiles.length) {
@@ -37,7 +39,7 @@ if (!saveFiles.length) {
     // There is a proper save file
     if (filteredFiles.length) {
         let saveFilePath = filteredFiles[filteredFiles.length - 1];
-        let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}${saveFilePath}`));
+        let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}/${config.id}/${saveFilePath}`));
 
         // Rewrite data from save file
         if (!savedData.finished) {
@@ -98,25 +100,28 @@ const crawl = () => {
         saveStatus(config, appData);
 
         // Creating output folder
-        hlp.createDirIfRequired(settings.outputDirectory + '/' + appData.startTimestamp);
+        const outputDir = `${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`;
+        hlp.createDirIfRequired(settings.outputDirectory);
+        hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}`);
+        hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`);
 
         // Print custom output if required
         if (config.custom.useCustom) {
-            custom.out(config, appData.startTimestamp);
+            custom.out(config, appData.startTimestamp, outputDir);
         }
 
         // Dump discarded URL list
         if (appData.discardedPages.size) {
-            dumpDiscarder(config, appData.startTimestamp, appData.discardedPages);
+            dumpDiscarder(config, appData.startTimestamp, appData.discardedPages, outputDir);
         }
 
         // Print generic output
         if (config.storeDefaultData) {
-            out(config, appData.startTimestamp, appData.outputData);
+            out(config, appData.startTimestamp, appData.outputData, outputDir);
         }
 
         // Crawl report
-        createReport(config, appData);
+        createReport(config, appData, outputDir);
     }
 };
 

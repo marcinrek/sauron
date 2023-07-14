@@ -1,6 +1,6 @@
 {
   "name": "sauron",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "Basic page crawler written in nodejs",
   "main": "sauron.js",
   "scripts": {
@@ -10,7 +10,29 @@
     "format": "prettier --ignore-path .prettierignore --write \"./**/*.+(js|json)\"",
     "serve:demo": "http-server -p 80 \"demo\""
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcinrek/sauron"
+  },
+  "author": "Marcin Rek <m@rek> (https://github.com/marcinrek)",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/marcinrek/sauron/issues"
+  },
+  "homepage": "https://github.com/marcinrek/sauron#readme",
+  "keywords": [
+    "nodejs",
+    "json",
+    "crawler",
+    "request",
+    "node-js"
+  ],
+  "bin": {
+    "sauron": "bin/sauron.js"
+  },
+  "engines": {
+    "node": ">= 18.16.0"
+  },
   "dependencies": {
     "chalk": "^4.1.2",
     "cheerio": "^1.0.0-rc.12",

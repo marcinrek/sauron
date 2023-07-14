@@ -8,8 +8,11 @@ Crawler is designed to work as a test tool. It can extract all links from a give
 * crawl auction/ecommerce pages to calculate avarage prices
 * extract all phone numbers from site
 
-## Usage
+## Requirements 
 Starting from version 1.3.0 Node version >= 15 may be required.
+Starting from version 2.0.0 Node version >= 18.16.0 is required.
+
+## Git version usage - up to version 2.0.0
 
 * crawl based on a config file
 ```
@@ -23,15 +26,46 @@ node .\sauron.js .\configs\sample.config.json .\configs\list.input.json
 ```
 npm run serve:demo
 ```
+
+## NPM version usage - from version 2.0.0
+* create a folder in the project root directory to store all related files for example ___crawler___
+
+* create ___sauron.settings.js___ file in the root project directory
+```
+module.exports = {
+    comments: {
+        customDirectory: 'Directory to store custom parsing functions',
+        outputDirectory: 'Directory to store output files',
+        saveDirectory: 'Directory to store save files',
+    },
+    customDirectory: './crawler/custom/',
+    outputDirectory: './crawler/output/',
+    saveDirectory: './crawler/save/',
+};
+```
+
+* all "custom" (custom.customFile) js files must be placed in the ___customDirectory___ specified above. 
+In the config file provide a path relative to that folder. 
+
+* crawl based on a config file
+```
+npx sauron .\configs\sample.config.json 
+```
+* same as above but start with a list of urls
+```
+npx sauron .\configs\sample.config.json .\configs\list.input.json
+```
+
 ## Config file example
 ```
 {
     "id":             "projectId",
     "startURL":       "http://example.com",
     "output":         "csv",
+    "storeDefaultData": true,
     "custom": {
         "useCustom": true,
-        "customFile": "./custom/custom.blank"
+        "customFile": "custom.blank"
     },
     "allowedDomains": [
         "example.com",
@@ -41,6 +75,7 @@ npm run serve:demo
         "http:",
         "https:"
     ],
+    "dedupeProtocol": true,
     "allowLinksFrom": {
         "pattern":        "^.*",
         "pathnameAllow": [],
@@ -67,6 +102,7 @@ npm run serve:demo
     "storeDefaultData": true,
     "saveStatusEach": 1000,
     "verbose": false,
+    "requestCount": 4,
     "maxPages": -1,
     "stripGET": false,
     "timeout":  5000
@@ -99,6 +135,8 @@ npm run serve:demo
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v2.0.0
+    * moving to npm package usage
 * v1.4.6
     * add jest test
     * minor fixes

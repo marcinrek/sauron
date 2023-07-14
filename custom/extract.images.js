@@ -2,7 +2,7 @@ const fs = require('fs');
 const ObjectsToCsv = require('objects-to-csv');
 const cheerio = require('cheerio');
 
-const settings = JSON.parse(fs.readFileSync('./settings.json'));
+const settings = require('../sauron.settings.js');
 
 const custom = {
     /**
@@ -49,17 +49,11 @@ const custom = {
      * Custom output function
      * @param {json} config configuration json
      * @param {string} startTimestamp timestamp crawl started
+     * @param {string} outputPath out directory path
      */
-    out: (config, startTimestamp) => {
-        const outputDir = `${settings.outputDirectory}${startTimestamp}/`;
-        const fileName = config.id + '_' + startTimestamp + '_custom';
-        const filePath = outputDir + fileName + '.csv';
-
-        // Create output directory if it doesn't exist
-        if (!fs.existsSync(outputDir)) {
-            console.log('Creating directory:', outputDir);
-            fs.mkdirSync(outputDir);
-        }
+    out: (config, startTimestamp, outputPath) => {
+        const fileName = config.id + '_custom';
+        const filePath = `${outputPath}/${fileName}.csv`;
 
         // Write CSV to disk
         new ObjectsToCsv(custom.data)

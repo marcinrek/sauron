@@ -4,7 +4,8 @@ const hlp = require('./helpers');
 const chalk = require('chalk');
 
 // Load app settings
-const settings = JSON.parse(fs.readFileSync('./settings.json'));
+const cwd = process.cwd();
+const settings = require(`${cwd}/sauron.settings.js`);
 
 /**
  * Print output to console
@@ -19,13 +20,13 @@ const consoleOutput = (visitedPages) => {
  * @param {object} visitedPages crawl results object
  * @param {string} startTimestamp timestamp
  * @param {object} config configuration data
+ * @param {string} outputPath out directory path
  */
-const csvOutput = (visitedPages, startTimestamp, config) => {
+const csvOutput = (visitedPages, startTimestamp, config, outputPath) => {
     let output = hlp.objToArr(visitedPages);
 
-    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
-    const fileName = `${config.id}_${startTimestamp}`;
-    const filePath = `${outputDir}${fileName}.csv`;
+    const fileName = `${config.id}`;
+    const filePath = `${outputPath}/${fileName}.csv`;
 
     // Remove JSON syntax from CSV
     output.map((item) => {
@@ -52,18 +53,20 @@ const csvOutput = (visitedPages, startTimestamp, config) => {
  * @param {object} visitedPages crawl results object
  * @param {string} startTimestamp timestamp
  * @param {object} config configuration data
+ * @param {string} outputPath out directory path
  */
-const jsonOutput = (visitedPages, startTimestamp, config) => {
+const jsonOutput = (visitedPages, startTimestamp, config, outputPath) => {
     let output = JSON.stringify(visitedPages, null, 4);
-    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
-    const fileName = `${config.id}_${startTimestamp}`;
-    const filePath = `${outputDir}${fileName}.json`;
+    const fileName = `${config.id}`;
+    const filePath = `${outputPath}/${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, output, 'utf8', (err) => {
-        if (err) throw err;
+    try {
+        fs.writeFileSync(filePath, output, 'utf8');
         console.log('Output file: ', filePath);
-    });
+    } catch (err) {
+        if (err) throw err;
+    }
 };
 
 /**
@@ -71,18 +74,20 @@ const jsonOutput = (visitedPages, startTimestamp, config) => {
  * @param {object} config configuration data
  * @param {string} startTimestamp timestamp string used in file outputs
  * @param {array} discardedPages pages not crawled due to configuration
+ * @param {string} outputPath out directory path
  */
-const dumpDiscarder = (config, startTimestamp, discardedPages) => {
+const dumpDiscarder = (config, startTimestamp, discardedPages, outputPath) => {
     let output = JSON.stringify(discardedPages, null, 4);
-    const outputDir = settings.outputDirectory + '/' + startTimestamp + '/';
-    const fileName = `${config.id}_${startTimestamp}_discardedURLs`;
-    const filePath = `${outputDir}${fileName}.json`;
+    const fileName = `${config.id}_discardedURLs`;
+    const filePath = `${outputPath}/${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, output, 'utf8', (err) => {
-        if (err) throw err;
+    try {
+        fs.writeFileSync(filePath, output, 'utf8');
         console.log('Discarded URLs list: ', filePath);
-    });
+    } catch (err) {
+        if (err) throw err;
+    }
 };
 
 /**
@@ -97,38 +102,42 @@ const saveStatus = (config, appData) => {
     output.discardedPages = [...output.discardedPages];
     output.visitedPages = [...output.visitedPages];
 
-    const outputDir = settings.saveDirectory;
+    const outputDir = `${settings.saveDirectory}`;
     const fileName = `${config.id}_${appData.startTimestamp}`;
-    const filePath = `${outputDir}${fileName}.json`;
+    const filePath = `${outputDir}/${config.id}/${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, JSON.stringify(output), 'utf8', (err) => {
-        if (err) throw err;
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(output), 'utf8');
         console.log(`Save file: ${chalk.cyan(filePath)}`);
-    });
+    } catch (err) {
+        if (err) throw err;
+    }
 };
 
 /**
  * Create crawl report
  * @param {object} config config JSON
  * @param {object} appData application data object
+ * @param {string} outputPath out directory path
  */
-const createReport = (config, appData) => {
+const createReport = (config, appData, outputPath) => {
     const output = {
         id: config.id,
         startTimestamp: appData.startTimestamp,
         pagesCrawled: appData.counter.crawled,
         pagesDiscarded: appData.discardedPages.length,
     };
-    const outputDir = settings.outputDirectory + '/' + appData.startTimestamp + '/';
-    const fileName = `${config.id}_${appData.startTimestamp}_report`;
-    const filePath = `${outputDir}${fileName}.json`;
+    const fileName = `${config.id}_report`;
+    const filePath = `${outputPath}/${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, JSON.stringify(output, null, 4), 'utf8', (err) => {
-        if (err) throw err;
+    try {
+        fs.writeFileSync(filePath, JSON.stringify(output, null, 4), 'utf8');
         console.log('Report: ', filePath);
-    });
+    } catch (err) {
+        if (err) throw err;
+    }
 };
 
 /**
@@ -136,19 +145,20 @@ const createReport = (config, appData) => {
  * @param {object} config config JSON
  * @param {string} startTimestamp timestamp string used in file outputs
  * @param {object} visitedPages crawl results object
+ * @param {string} outputPath out directory path
  */
-const out = (config, startTimestamp, visitedPages) => {
+const out = (config, startTimestamp, visitedPages, outputPath) => {
     switch (config.output) {
         case 'console':
             consoleOutput(visitedPages);
             break;
 
         case 'csv':
-            csvOutput(visitedPages, startTimestamp, config);
+            csvOutput(visitedPages, startTimestamp, config, outputPath);
             break;
 
         case 'json':
-            jsonOutput(visitedPages, startTimestamp, config);
+            jsonOutput(visitedPages, startTimestamp, config, outputPath);
             break;
 
         case 'blank':
