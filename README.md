@@ -79,9 +79,11 @@ npm run serve:demo
 | ```id```          | ```string```  | Crawl id - used in output file name etc. |
 | ```startURL```       | ```string```  | Url to start crawl from                         |
 | ```output```      | ```string```  | Crawl output method. Allowed values: ```console```, ```csv ```, ```json ```, ```blank ```        |
+| ```storeDefaultData```      | ```boolean```  | Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'        |
 | ```custom```      | ```object```  | Custom parsing actions settings        |
 | ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check.               |
 | ```allowedProtocoles```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
+| ```dedupeProtocol```        | ```boolean```  | De-duplicate links based on protocol.               |
 | ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that matche given requirements will be crawled.   |
 | ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
@@ -89,14 +91,17 @@ npm run serve:demo
 | ```cookieURL```       | ```string```  | URL for the cookie   |
 | ```cookies```       | ```array```  | Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie   |
 | ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
-| ```storeDefaultData```      | ```boolean```  | Store default data with links, statusCodes etc   |
 | ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
 | ```verbose```      | ```boolean```  | Print more output to console   |
+| ```requestCount```      | ```number```  | Number of requests to be run in one batch   |
 | ```maxPages```      | ```number```  | Max pages to crawl. To have no limit set ```-1```   |
 | ```stripGET```      | ```boolean```  | Strip GET parameters from links   |
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v1.4.6
+    * add jest test
+    * minor fixes
 * v1.4.5
     * save custom.data with "saveStatusEach" - now when custom action has a "data" property, which can be an array or an object, it will be stored in the save file every N crawled URLs
     * tidy sample config items position and descriptions

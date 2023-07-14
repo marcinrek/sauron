@@ -1,66 +1,65 @@
 {
-    "comments": {
-        "id":                  "Crawl id - used in output file name etc.",
-        "startURL":            "Url to start crawl from",
-        "output":              "Crawl output method. Allowed values: console, csv, json, blank",
-        "storeDefaultData":    "Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'",
-        "custom":              "Custom parsing actions settings",
-        "allowedDomains":      "Only domains from this array will be crawled. Empty array will discard this check.",
-        "allowedProtocols":    "Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.",
-        "allowLinksFrom":      "Only links that are found on a urls that matche given requirements will be crawled",
-        "crawlLinks":          "Only links that matche given requirements will be crawled",
-        "saveCrawlData":       "Only links that matche given requirements will be saved to output",
-        "httpAuth":            "Settings for basic authentication",
-        "cookieURL":           "URL for the cookie",
-        "cookies":             "Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie",
-        "requireValidSSLCert": "Check is SSL certificates valid",
-        "saveStatusEach":      "Save status each N crawls to enable abort and continue later",
-        "verbose":             "Print more output to console",
-        "maxPages":            "Max pages to crawl. To have no limit set -1",
-        "stripGET":            "Strip GET parameters from links",
-        "timeout":             "Single request timeout in ms"
-    },
-    "id":               "m5500",
-    "startURL":         "http://127.0.0.1:8080/",
-    "output":           "csv",
-    "storeDefaultData": true,
-    "custom": {
-        "useCustom": true,
-        "customFile": "./custom/extract.images"
-    },
-    "allowedDomains": [
-        "127.0.0.1"
-    ],
-    "allowedProtocols": [
-        "http:",
-        "https:"
-    ],
-    "allowLinksFrom": {
-        "pattern":       "^.*",
-        "pathnameAllow": [],
-        "pathnameDeny":  []
-    },
-    "crawlLinks": {
-        "pattern":       "^.*",
-        "pathnameAllow": [],
-        "pathnameDeny":  []
-    },
-    "saveCrawlData": {
-        "pattern":       "^.*",
-        "pathnameAllow": [],
-        "pathnameDeny":  []
-    },
-    "httpAuth": {
-        "enable": false,
-        "user":   "login",
-        "pass":   "pass"
-    },
-    "cookieURL": null,
-    "cookies": [],
-    "requireValidSSLCert": false,
-    "saveStatusEach": 1000,
-    "verbose": false,
-    "maxPages": -1,
-    "stripGET": false,
-    "timeout":  5000
+  "comments": {
+    "id": "Crawl id - used in output file name etc.",
+    "startURL": "Url to start crawl from",
+    "output": "Crawl output method. Allowed values: console, csv, json, blank",
+    "storeDefaultData": "Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'",
+    "custom": "Custom parsing actions settings",
+    "allowedDomains": "Only domains from this array will be crawled. Empty array will discard this check.",
+    "allowedProtocols": "Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.",
+    "dedupeProtocol": "De-duplicate links based on protocol.",
+    "allowLinksFrom": "Only links that are found on a urls that matche given requirements will be crawled",
+    "crawlLinks": "Only links that matche given requirements will be crawled",
+    "saveCrawlData": "Only links that matche given requirements will be saved to output",
+    "httpAuth": "Settings for basic authentication",
+    "cookieURL": "URL for the cookie",
+    "cookies": "Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie",
+    "requireValidSSLCert": "Check is SSL certificates valid",
+    "saveStatusEach": "Save status each N crawls to enable abort and continue later",
+    "verbose": "Print more output to console",
+    "requestCount": "Number of requests to be run in one batch",
+    "maxPages": "Max pages to crawl. To have no limit set -1",
+    "stripGET": "Strip GET parameters from links",
+    "timeout": "Single request timeout in ms"
+  },
+  "id": "m5500",
+  "startURL": "http://127.0.0.1/",
+  "output": "csv",
+  "storeDefaultData": true,
+  "custom": {
+    "useCustom": true,
+    "customFile": "./custom/extract.images"
+  },
+  "allowedDomains": ["127.0.0.1"],
+  "allowedProtocols": ["http:", "https:"],
+  "dedupeProtocol": true,
+  "allowLinksFrom": {
+    "pattern": "^.*",
+    "pathnameAllow": [],
+    "pathnameDeny": []
+  },
+  "crawlLinks": {
+    "pattern": "^.*",
+    "pathnameAllow": [],
+    "pathnameDeny": []
+  },
+  "saveCrawlData": {
+    "pattern": "^.*",
+    "pathnameAllow": [],
+    "pathnameDeny": []
+  },
+  "httpAuth": {
+    "enable": false,
+    "user": "login",
+    "pass": "pass"
+  },
+  "cookieURL": null,
+  "cookies": [],
+  "requireValidSSLCert": false,
+  "saveStatusEach": 3,
+  "verbose": false,
+  "requestCount": 4,
+  "maxPages": -1,
+  "stripGET": false,
+  "timeout": 5000
 }

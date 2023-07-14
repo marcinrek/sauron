@@ -1,10 +1,77 @@
 const colors = require('colors'); // eslint-disable-line
-const request = require('request-promise').defaults({ jar: true });
+const request = require('request-promise').defaults({jar: true});
 const tough = require('tough-cookie');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
+const hlp = require('./helpers');
+const chalk = require('chalk');
 
 const crw = {
+    // Single page crawl
+    singleCrawl: (pageURL, config, appData, custom) => {
+        let responsePass;
+        let errorResponse = false;
+
+        if (config.verbose) {
+            console.log(`About to crawl: ${chalk.blue(pageURL)}`);
+        }
+
+        return new Promise((resolve) => {
+            crw.visitPage(pageURL, config)
+                .then((response) => {
+                    responsePass = response;
+                })
+                .catch((response) => {
+                    errorResponse = true;
+                    responsePass = response;
+                })
+                .finally(() => {
+                    // Build page data object
+                    let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
+
+                    // Build custom response object
+                    if (config.custom.useCustom) {
+                        custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
+                    }
+
+                    // Save currently visited page data for output
+                    if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
+                        appData.outputData[pageURL] = pageData;
+                    }
+
+                    // Mark page as crawled
+                    appData.visitedPages.add(pageURL);
+
+                    // Work on pagesToVisit only if crawled url matches pattern
+                    if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
+                        // Add new links to list if it matches config.allowLinksFromPatter pattern
+                        crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) =>
+                            appData.pagesToVisit.add(url),
+                        );
+                    }
+
+                    // Remove currently visited page from list
+                    appData.pagesToVisit.delete(pageURL);
+
+                    // Inc counters
+                    appData.counter.crawled += 1;
+
+                    // // Display info about which page is going to be crawled
+                    let finished = appData.counter.crawled;
+                    let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
+                    let percent = Math.round((finished / total) * 10000) / 100;
+                    console.log(`${finished} of ${total} (${percent}%) [${chalk.yellow(hlp.getTimestamp('HH:mm:ss'))}] Crawling: ${chalk.green(pageURL)}`);
+
+                    // Mark that save is required
+                    if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
+                        appData.saveRequired = true;
+                    }
+
+                    // Resolve this crawl
+                    resolve();
+                });
+        });
+    },
 
     /**
      * Crawl a single URL
@@ -30,9 +97,9 @@ const crw = {
             resolveWithFullResponse: true,
             rejectUnauthorized: config.requireValidSSLCert,
             headers: {
-                'User-Agent': 'Sauron'
+                'User-Agent': 'Sauron',
             },
-            jar: cookiejar
+            jar: cookiejar,
         };
 
         // HTTP Auth
@@ -54,21 +121,21 @@ const crw = {
      * @returns {object} page data object
      */
     buildPageData: (response, isError, pageURL, counter) => {
-        let { statusCode } = response;
-        let pageBody   = response.body || response.message;
-        let pageLinks  = pageBody ? crw.getLinksFromBody(pageBody, pageURL) : null;
-        let pageTitle  = pageBody ? crw.getPageTitle(pageBody) : '';
-        let errorData  = isError ? ((response.hasOwnProperty('message') && statusCode !== 404) ? response.message : statusCode) : false;
+        let {statusCode} = response;
+        let pageBody = response.body || response.message;
+        let pageLinks = pageBody ? crw.getLinksFromBody(pageBody, pageURL) : null;
+        let pageTitle = pageBody ? crw.getPageTitle(pageBody) : '';
+        let errorData = isError ? (Object.prototype.hasOwnProperty.call(response, 'message') && statusCode !== 404 ? response.message : statusCode) : false;
         let pageData = {
-            id:     counter.crawled,
-            url:    pageURL,
-            title:  pageTitle,
+            id: counter.crawled,
+            url: pageURL,
+            title: pageTitle,
             status: statusCode,
-            links:  pageLinks ? pageLinks.url : [],
+            links: pageLinks ? pageLinks.url : [],
             mailto: pageLinks ? pageLinks.mailto : [],
-            tel:    pageLinks ? pageLinks.tel : [],
-            hash:   pageLinks ? pageLinks.hash : [],
-            error:  errorData
+            tel: pageLinks ? pageLinks.tel : [],
+            hash: pageLinks ? pageLinks.hash : [],
+            error: errorData,
         };
 
         // Construct page details object
@@ -87,34 +154,55 @@ const crw = {
     updateCrawlList: (linkArray, pagesToVisit, visitedPages, discardedPages, config) => {
         let tempDiscardedPages = [];
         let properLinksCount = 0;
-        let newLinksCount = config.verbose ? linkArray.length : 0;
-        let pagesToVisitCount = config.verbose ? pagesToVisit.length : 0;
+        let newLinksCount = linkArray.length;
+        let pagesToVisitCount = pagesToVisit.size;
 
         // Loop new links
         linkArray.forEach((url) => {
-            let sanitizedURL              = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
-            let urlAlreadyVisited         = (sanitizedURL in visitedPages);
-            let urlInAllowedDomains       = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
-            let urlInAllowedProtocols     = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
-            let validateCrawlLinks        = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
+            let urlAlreadyVisited = false;
+            let dedupedUrlAlreadyVisited = false;
+            let sanitizedURL = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
 
-            if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
+            if (config.dedupeProtocol && config.allowedProtocols.length > 1) {
+                //FIXME: Don't hardcode protocols
+                if (sanitizedURL.indexOf('http://') === 0) {
+                    dedupedUrlAlreadyVisited = visitedPages.has(sanitizedURL.replace('http://', 'https://'));
+                } else {
+                    dedupedUrlAlreadyVisited = visitedPages.has(sanitizedURL.replace('https://', 'http://'));
+                }
+            }
+
+            urlAlreadyVisited = visitedPages.has(sanitizedURL);
+
+            let urlInAllowedDomains = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
+            let urlInAllowedProtocols = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
+            let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
+
+            if (!urlAlreadyVisited && !dedupedUrlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
                 properLinksCount += 1;
-                pagesToVisit.push(sanitizedURL);
+                pagesToVisit.add(sanitizedURL);
+            } else if (dedupedUrlAlreadyVisited) {
+                if (config.verbose) {
+                    console.log(`Deduped URL: ${chalk.cyan(sanitizedURL)}`);
+                }
             } else if (!validateCrawlLinks) {
-                if (config.verbose) tempDiscardedPages.push(sanitizedURL);
-                discardedPages.push(sanitizedURL);
+                if (config.verbose) {
+                    tempDiscardedPages.push(sanitizedURL);
+                }
+                discardedPages.add(sanitizedURL);
             }
         });
 
         // Print discarded urls info
         if (tempDiscardedPages.length) {
-            console.log(`Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? (' +' + (tempDiscardedPages.length - 1) + ']') : ']'}`.magenta);
+            console.log(
+                `Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? ' +' + (tempDiscardedPages.length - 1) + ']' : ']'}`.magenta,
+            );
         }
 
         // Print links count
         if (config.verbose) {
-            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${[...new Set(pagesToVisit)].length - pagesToVisitCount} `.cyan);
+            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `.cyan);
         }
 
         return pagesToVisit;
@@ -167,7 +255,6 @@ const crw = {
         links.hash = [...new Set(links.hash)];
 
         return links;
-
     },
 
     /**
@@ -188,7 +275,12 @@ const crw = {
      */
     relToAbs: (relUrl, parentURL) => {
         let url = new URL(parentURL);
-        return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `:${url.port}` : ''}${relUrl}`;
+
+        if (relUrl[0] === '/') {
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${relUrl}`;
+        } else {
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${url.pathname}/${relUrl}`;
+        }
     },
 
     /**
@@ -198,7 +290,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInDomains: (url, domains) => {
-        let { hostname } = new URL(url);
+        let {hostname} = new URL(url);
 
         return domains.indexOf(hostname) !== -1 ? true : false;
     },
@@ -210,7 +302,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInProto: (url, protocols) => {
-        let { protocol } = new URL(url);
+        let {protocol} = new URL(url);
         return protocols.indexOf(protocol) !== -1 ? true : false;
     },
 
@@ -222,7 +314,7 @@ const crw = {
      * @returns {boolean}
      */
     urlInPathname: (url, pathnames, stripGET) => {
-        let { pathname } = new URL(url);
+        let {pathname} = new URL(url);
         let inPath = false;
 
         pathnames.forEach((path) => {
@@ -246,11 +338,11 @@ const crw = {
      * @returns {boolean}
      */
     checkConfigConditions: (pageURL, configObj) => {
-        let pattern       = new RegExp(configObj.pattern, 'g');
+        let pattern = new RegExp(configObj.pattern, 'g');
         let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow, configObj.stripGET) : true;
-        let pathnameDeny  = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
+        let pathnameDeny = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
 
-        return (pattern.test(pageURL) && pathnameAllow && !pathnameDeny);
+        return pattern.test(pageURL) && pathnameAllow && !pathnameDeny;
     },
 
     /**
@@ -273,12 +365,15 @@ const crw = {
      */
     stripGET: (url) => {
         if (url.indexOf('?') !== -1) {
-            return url.split('?')[0];
+            let hash = '';
+            if (url.indexOf('#') !== -1) {
+                hash = `#${url.split('#')[1]}`;
+            }
+            return `${url.split('?')[0]}${hash}`;
         }
 
         return url;
-    }
-
+    },
 };
 
 module.exports = crw;

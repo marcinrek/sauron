@@ -1,6 +1,7 @@
 const fs = require('fs');
 const ObjectsToCsv = require('objects-to-csv');
 const hlp = require('./helpers');
+const chalk = require('chalk');
 
 // Load app settings
 const settings = JSON.parse(fs.readFileSync('./settings.json'));
@@ -36,12 +37,14 @@ const csvOutput = (visitedPages, startTimestamp, config) => {
     });
 
     // Write CSV to disk
-    new ObjectsToCsv(output).toDisk(filePath).then(() => {
-        console.log('Output file: ', filePath);
-    }).catch((err) => {
-        throw err;
-    });
-
+    new ObjectsToCsv(output)
+        .toDisk(filePath)
+        .then(() => {
+            console.log('Output file: ', filePath);
+        })
+        .catch((err) => {
+            throw err;
+        });
 };
 
 /**
@@ -88,15 +91,20 @@ const dumpDiscarder = (config, startTimestamp, discardedPages) => {
  * @param {object} appData. object with all data to save as single JSON
  */
 const saveStatus = (config, appData) => {
-    let output = JSON.stringify(appData);
+    // Change Set to Array
+    let output = Object.assign({}, appData);
+    output.pagesToVisit = [...output.pagesToVisit];
+    output.discardedPages = [...output.discardedPages];
+    output.visitedPages = [...output.visitedPages];
+
     const outputDir = settings.saveDirectory;
     const fileName = `${config.id}_${appData.startTimestamp}`;
     const filePath = `${outputDir}${fileName}.json`;
 
     // Write JSON to disk
-    fs.writeFile(filePath, output, 'utf8', (err) => {
+    fs.writeFile(filePath, JSON.stringify(output), 'utf8', (err) => {
         if (err) throw err;
-        console.log(`Save file: ${filePath}`.green);
+        console.log(`Save file: ${chalk.cyan(filePath)}`);
     });
 };
 
@@ -110,7 +118,7 @@ const createReport = (config, appData) => {
         id: config.id,
         startTimestamp: appData.startTimestamp,
         pagesCrawled: appData.counter.crawled,
-        pagesDiscarded: appData.discardedPages.length
+        pagesDiscarded: appData.discardedPages.length,
     };
     const outputDir = settings.outputDirectory + '/' + appData.startTimestamp + '/';
     const fileName = `${config.id}_${appData.startTimestamp}_report`;
@@ -130,34 +138,32 @@ const createReport = (config, appData) => {
  * @param {object} visitedPages crawl results object
  */
 const out = (config, startTimestamp, visitedPages) => {
-
     switch (config.output) {
-    case 'console':
-        consoleOutput(visitedPages);
-        break;
+        case 'console':
+            consoleOutput(visitedPages);
+            break;
 
-    case 'csv':
-        csvOutput(visitedPages, startTimestamp, config);
-        break;
+        case 'csv':
+            csvOutput(visitedPages, startTimestamp, config);
+            break;
 
-    case 'json':
-        jsonOutput(visitedPages, startTimestamp, config);
-        break;
+        case 'json':
+            jsonOutput(visitedPages, startTimestamp, config);
+            break;
 
-    case 'blank':
-        console.log('Blank output specified in config file ...');
-        break;
+        case 'blank':
+            console.log('Blank output specified in config file ...');
+            break;
 
-    default:
-        consoleOutput(visitedPages);
-        break;
+        default:
+            consoleOutput(visitedPages);
+            break;
     }
-
 };
 
 module.exports = {
     out,
     dumpDiscarder,
     saveStatus,
-    createReport
+    createReport,
 };
