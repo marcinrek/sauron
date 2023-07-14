@@ -18,7 +18,7 @@ const createAppData = (config, startTimestamp, urlList, custom) => {
         discardedPages: new Set(),
         visitedPages: new Set(),
         outputData: {},
-        customData: custom.data || [],
+        customData: custom?.data || [],
     };
 };
 

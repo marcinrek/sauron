@@ -4,12 +4,17 @@ const tough = require('tough-cookie');
 const cheerio = require('cheerio');
 const URL = require('url-parse');
 const hlp = require('./helpers');
+const chalk = require('chalk');
 
 const crw = {
     // Single page crawl
     singleCrawl: (pageURL, config, appData, custom) => {
         let responsePass;
         let errorResponse = false;
+
+        if (config.verbose) {
+            console.log(`About to crawl: ${chalk.blue(pageURL)}`);
+        }
 
         return new Promise((resolve) => {
             crw.visitPage(pageURL, config)
@@ -55,7 +60,7 @@ const crw = {
                     let finished = appData.counter.crawled;
                     let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
                     let percent = Math.round((finished / total) * 10000) / 100;
-                    console.log(`${finished} of ${total} (${percent}%) [${hlp.getTimestamp('HH:mm:ss')}] Crawling: ${pageURL}`);
+                    console.log(`${finished} of ${total} (${percent}%) [${chalk.yellow(hlp.getTimestamp('HH:mm:ss'))}] Crawling: ${chalk.green(pageURL)}`);
 
                     // Mark that save is required
                     if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
@@ -154,17 +159,36 @@ const crw = {
 
         // Loop new links
         linkArray.forEach((url) => {
+            let urlAlreadyVisited = false;
+            let dedupedUrlAlreadyVisited = false;
             let sanitizedURL = config.stripGET ? crw.stripGET(crw.stripHash(url)) : crw.stripHash(url);
-            let urlAlreadyVisited = visitedPages.has(sanitizedURL);
+
+            if (config.dedupeProtocol && config.allowedProtocols.length > 1) {
+                //FIXME: Don't hardcode protocols
+                if (sanitizedURL.indexOf('http://') === 0) {
+                    dedupedUrlAlreadyVisited = visitedPages.has(sanitizedURL.replace('http://', 'https://'));
+                } else {
+                    dedupedUrlAlreadyVisited = visitedPages.has(sanitizedURL.replace('https://', 'http://'));
+                }
+            }
+
+            urlAlreadyVisited = visitedPages.has(sanitizedURL);
+
             let urlInAllowedDomains = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
             let urlInAllowedProtocols = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
             let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
-            if (!urlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
+            if (!urlAlreadyVisited && !dedupedUrlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
                 properLinksCount += 1;
                 pagesToVisit.add(sanitizedURL);
+            } else if (dedupedUrlAlreadyVisited) {
+                if (config.verbose) {
+                    console.log(`Deduped URL: ${chalk.cyan(sanitizedURL)}`);
+                }
             } else if (!validateCrawlLinks) {
-                if (config.verbose) tempDiscardedPages.push(sanitizedURL);
+                if (config.verbose) {
+                    tempDiscardedPages.push(sanitizedURL);
+                }
                 discardedPages.add(sanitizedURL);
             }
         });
@@ -253,9 +277,9 @@ const crw = {
         let url = new URL(parentURL);
 
         if (relUrl[0] === '/') {
-            return `${url.protocol}//${url.hostname}${relUrl}`;
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${relUrl}`;
         } else {
-            return `${url.protocol}//${url.hostname}${url.pathname}/${relUrl}`;
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${url.pathname}/${relUrl}`;
         }
     },
 

@@ -83,7 +83,7 @@ const crawl = () => {
                 appData.saveRequired = false;
 
                 // Add custom data to appData for save
-                appData.customData = custom.data;
+                appData.customData = custom?.data || [];
 
                 // Save status
                 saveStatus(config, appData);

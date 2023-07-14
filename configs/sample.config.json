@@ -7,6 +7,7 @@
     "custom": "Custom parsing actions settings",
     "allowedDomains": "Only domains from this array will be crawled. Empty array will discard this check.",
     "allowedProtocols": "Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.",
+    "dedupeProtocol": "De-duplicate links based on protocol.",
     "allowLinksFrom": "Only links that are found on a urls that matche given requirements will be crawled",
     "crawlLinks": "Only links that matche given requirements will be crawled",
     "saveCrawlData": "Only links that matche given requirements will be saved to output",
@@ -31,6 +32,7 @@
   },
   "allowedDomains": ["127.0.0.1"],
   "allowedProtocols": ["http:", "https:"],
+  "dedupeProtocol": true,
   "allowLinksFrom": {
     "pattern": "^.*",
     "pathnameAllow": [],

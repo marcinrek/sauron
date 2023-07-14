@@ -1,6 +1,7 @@
 const fs = require('fs');
 const ObjectsToCsv = require('objects-to-csv');
 const hlp = require('./helpers');
+const chalk = require('chalk');
 
 // Load app settings
 const settings = JSON.parse(fs.readFileSync('./settings.json'));
@@ -103,7 +104,7 @@ const saveStatus = (config, appData) => {
     // Write JSON to disk
     fs.writeFile(filePath, JSON.stringify(output), 'utf8', (err) => {
         if (err) throw err;
-        console.log(`Save file: ${filePath}`.green);
+        console.log(`Save file: ${chalk.cyan(filePath)}`);
     });
 };
 
