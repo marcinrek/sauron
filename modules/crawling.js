@@ -1,8 +1,7 @@
-const colors = require('colors'); // eslint-disable-line
-const request = require('request-promise').defaults({jar: true});
-const tough = require('tough-cookie');
-const cheerio = require('cheerio');
-const URL = require('url-parse');
+const axios = require('axios');
+const jsdom = require('jsdom');
+const {JSDOM} = jsdom;
+const {URL} = require('url');
 const hlp = require('./helpers');
 const chalk = require('chalk');
 
@@ -56,7 +55,7 @@ const crw = {
                     // Inc counters
                     appData.counter.crawled += 1;
 
-                    // // Display info about which page is going to be crawled
+                    // Display info about which page is going to be crawled
                     let finished = appData.counter.crawled;
                     let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
                     let percent = Math.round((finished / total) * 10000) / 100;
@@ -79,37 +78,58 @@ const crw = {
      * @param {json} config configuration json
      * @returns {objecy} page response
      */
-    visitPage: (pageURL, config) => {
-        let cookiejar = request.jar();
-
-        // Cookies
-        if (config.cookies.length && config.cookieURL) {
-            config.cookies.forEach((cookie) => {
-                let cookieObj = new tough.Cookie(cookie);
-                cookiejar.setCookie(cookieObj.toString(), config.cookieURL);
-            });
+    visitPage: async (pageURL, config) => {
+        // Prepare cookies
+        let cookies = '';
+        if (config.cookies && config.cookies.length) {
+            cookies = config.cookies
+                .map((cookie) => {
+                    return `${cookie.key}=${cookie.value}`;
+                })
+                .join('; ');
         }
 
-        // Options
-        let options = {
-            uri: pageURL,
+        // Prepare options
+        const options = {
+            url: pageURL,
             timeout: config.timeout,
-            resolveWithFullResponse: true,
-            rejectUnauthorized: config.requireValidSSLCert,
-            headers: {
-                'User-Agent': 'Sauron',
+            validateStatus: function (status) {
+                return status >= 200 && status < 300; // default
             },
-            jar: cookiejar,
+            headers: {
+                ...config.customHeaders,
+                Cookie: cookies,
+            },
+            httpsAgent: new (require('https').Agent)({
+                rejectUnauthorized: config.requireValidSSLCert,
+            }),
         };
 
         // HTTP Auth
-        if (config.httpAuth.enable) {
-            // let auth = new Buffer(config.httpAuth.user + ':' + config.httpAuth.pass).toString('base64');
-            let auth = Buffer.from(config.httpAuth.user + ':' + config.httpAuth.pass).toString('base64');
-            options.headers.Authorization = 'Basic ' + auth;
+        if (config.httpAuth && config.httpAuth.enable) {
+            const auth = Buffer.from(`${config.httpAuth.user}:${config.httpAuth.pass}`).toString('base64');
+            options.headers.Authorization = `Basic ${auth}`;
         }
 
-        return request(options);
+        // Make request
+        try {
+            const response = await axios(options);
+            return {
+                statusCode: response.status,
+                headers: response.headers,
+                body: response.data,
+            };
+        } catch (error) {
+            if (error.response) {
+                return {
+                    statusCode: error.response.status,
+                    headers: error.response.headers,
+                    body: error.response.data,
+                };
+            } else {
+                throw error;
+            }
+        }
     },
 
     /**
@@ -196,13 +216,13 @@ const crw = {
         // Print discarded urls info
         if (tempDiscardedPages.length) {
             console.log(
-                `Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? ' +' + (tempDiscardedPages.length - 1) + ']' : ']'}`.magenta,
+                chalk.magenta(`Discarded due to crawlLinks config: [${tempDiscardedPages[0]}${tempDiscardedPages.length > 1 ? ' +' + (tempDiscardedPages.length - 1) + ']' : ']'}`),
             );
         }
 
         // Print links count
         if (config.verbose) {
-            console.log(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `.cyan);
+            console.log(chalk.cyan(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `));
         }
 
         return pagesToVisit;
@@ -215,44 +235,41 @@ const crw = {
      * @returns {array} array of links present on the page
      */
     getLinksFromBody: (pageBody, pageURL) => {
-        let $ = cheerio.load(pageBody);
-        let links = {
+        const dom = new JSDOM(pageBody, {url: pageURL});
+        const document = dom.window.document;
+
+        const links = {
             url: [],
             mailto: [],
             tel: [],
             hash: [],
         };
 
-        // Relative links
-        $("a[href^='/']").each((_index, element) => {
-            links.url.push(crw.relToAbs($(element).attr('href'), pageURL));
-        });
+        // Helper function to convert relative URLs to absolute
+        //const relToAbs = (rel, base) => new URL(rel, base).href;
 
-        // Absolute links
-        $("a[href^='http']").each((_index, element) => {
-            links.url.push($(element).attr('href'));
-        });
+        // Function to process links
+        const processLinks = (selector, linkType) => {
+            document.querySelectorAll(selector).forEach((element) => {
+                const href = element.getAttribute('href');
+                if (linkType === 'url' && href.startsWith('/')) {
+                    links[linkType].push(crw.relToAbs(href, pageURL));
+                } else {
+                    links[linkType].push(href);
+                }
+            });
+        };
 
-        // Mail links
-        $("a[href^='mailto:']").each((_index, element) => {
-            links.mailto.push($(element).attr('href'));
-        });
-
-        // Tel links
-        $("a[href^='tel:']").each((_index, element) => {
-            links.tel.push($(element).attr('href'));
-        });
-
-        // Hash links
-        $("a[href^='#']").each((_index, element) => {
-            links.hash.push($(element).attr('href'));
-        });
+        // Process different types of links
+        processLinks("a[href^='/'], a[href^='http']", 'url');
+        processLinks("a[href^='mailto:']", 'mailto');
+        processLinks("a[href^='tel:']", 'tel');
+        processLinks("a[href^='#']", 'hash');
 
         // Remove duplicates
-        links.url = [...new Set(links.url)];
-        links.mailto = [...new Set(links.mailto)];
-        links.tel = [...new Set(links.tel)];
-        links.hash = [...new Set(links.hash)];
+        for (const key in links) {
+            links[key] = [...new Set(links[key])];
+        }
 
         return links;
     },
@@ -263,8 +280,9 @@ const crw = {
      * @returns {string} page title
      */
     getPageTitle: (pageBody) => {
-        let $ = cheerio.load(pageBody);
-        return $('title').text() || undefined;
+        const dom = new JSDOM(pageBody);
+        const titleElement = dom.window.document.querySelector('title');
+        return titleElement ? titleElement.textContent : undefined;
     },
 
     /**
@@ -277,9 +295,9 @@ const crw = {
         let url = new URL(parentURL);
 
         if (relUrl[0] === '/') {
-            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${relUrl}`;
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 && url.port !== '' ? `:${url.port}` : ''}${relUrl}`;
         } else {
-            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 ? `${url.port}` : ''}${url.pathname}/${relUrl}`;
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 && url.port !== '' ? `:${url.port}` : ''}${url.pathname}/${relUrl}`;
         }
     },
 

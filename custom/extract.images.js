@@ -1,6 +1,8 @@
 const fs = require('fs');
 const ObjectsToCsv = require('objects-to-csv');
-const cheerio = require('cheerio');
+//const cheerio = require('cheerio');
+const jsdom = require('jsdom');
+const {JSDOM} = jsdom;
 
 const settings = require('../sauron.settings.js');
 
@@ -12,11 +14,12 @@ const custom = {
      */
     getImageURL: (response) => {
         if (response.statusCode === 200) {
-            let $ = cheerio.load(response.body);
-            let images = [];
-            $('img').each((_index, element) => {
-                images.push($(element).attr('src'));
-            });
+            const dom = new JSDOM(response.body);
+            const document = dom.window.document;
+
+            const images = Array.from(document.querySelectorAll('img'))
+                .map((img) => img.getAttribute('src'))
+                .filter((src) => src); // Filter out null or undefined values
 
             return images;
         }

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const chalk = require('chalk');
 const hlp = require('./modules/helpers');
 const crw = require('./modules/crawling');
 const {out, dumpDiscarder, saveStatus, createReport} = require('./modules/output');
@@ -31,7 +32,7 @@ let saveFiles = fs.readdirSync(`${settings.saveDirectory}/${config.id}`);
 // Load save data
 if (!saveFiles.length) {
     // Error reading save directory
-    console.log('Save directory does not exist or is empty. Starting fresh ...'.cyan);
+    console.log(chalk.cyan('Save directory does not exist or is empty. Starting fresh ...'));
 } else {
     // Save directory exists
     let filteredFiles = saveFiles.filter((fileName) => fileName.indexOf(`${config.id}_`) === 0);
@@ -44,7 +45,7 @@ if (!saveFiles.length) {
         // Rewrite data from save file
         if (!savedData.finished) {
             // Display info about save data being loded
-            console.log(`Reading save file: ${saveFilePath}`.green);
+            console.log(chalk.green(`Reading save file: ${saveFilePath}`));
 
             // Write new appData from save file
             appData = appDateFromSaved(savedData);
@@ -54,15 +55,15 @@ if (!saveFiles.length) {
                 custom.data = appData.customData;
             }
             if (custom && config.verbose) {
-                console.log('Loaded custom.data from save:'.cyan);
+                console.log(chalk.cyan('Loaded custom.data from save:'));
                 console.log(custom.data);
             }
         } else {
-            console.log(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`.cyan);
+            console.log(chalk.cyan(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`));
         }
     } else {
         // There is no proper save file
-        console.log('Save directory exists but save file not found. Starting fresh ...'.cyan);
+        console.log(chalk.cyan('Save directory exists but save file not found. Starting fresh ...'));
     }
 }
 

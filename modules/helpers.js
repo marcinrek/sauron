@@ -1,6 +1,6 @@
-const colors = require('colors'); // eslint-disable-line
 const fs = require('fs');
 const date = require('date-and-time');
+const chalk = require('chalk');
 
 module.exports = {
     /**
@@ -33,7 +33,7 @@ module.exports = {
     createDirIfRequired: (dirName) => {
         /* istanbul ignore next */
         if (!fs.existsSync(dirName)) {
-            console.log(`Creating directory: ${dirName}`.cyan);
+            console.log(chalk.cyan(`Creating directory: ${dirName}`));
             fs.mkdirSync(dirName);
         }
     },

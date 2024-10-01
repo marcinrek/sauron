@@ -12,8 +12,8 @@
     "crawlLinks": "Only links that matche given requirements will be crawled",
     "saveCrawlData": "Only links that matche given requirements will be saved to output",
     "httpAuth": "Settings for basic authentication",
-    "cookieURL": "URL for the cookie",
-    "cookies": "Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie",
+    "cookies": "Array of cookies represented by an object with keys: key and value",
+    "customHeaders": "Object containg custom headers to be send with each request",
     "requireValidSSLCert": "Check is SSL certificates valid",
     "saveStatusEach": "Save status each N crawls to enable abort and continue later",
     "verbose": "Print more output to console",
@@ -23,8 +23,8 @@
     "timeout": "Single request timeout in ms"
   },
   "id": "m5500",
-  "startURL": "http://127.0.0.1/",
-  "output": "csv",
+  "startURL": "http://127.0.0.1:8080/",
+  "output": "json",
   "storeDefaultData": true,
   "custom": {
     "useCustom": true,
@@ -53,8 +53,15 @@
     "user": "login",
     "pass": "pass"
   },
-  "cookieURL": null,
-  "cookies": [],
+  "cookies": [
+    {
+      "key": "testCookie",
+      "value": "test-value"
+    }
+  ],
+  "customHeaders": {
+    "User-Agent": "Mozilla/5.0 (SAURON NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0"
+  },
   "requireValidSSLCert": false,
   "saveStatusEach": 3,
   "verbose": false,

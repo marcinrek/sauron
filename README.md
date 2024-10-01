@@ -12,21 +12,6 @@ Crawler is designed to work as a test tool. It can extract all links from a give
 Starting from version 1.3.0 Node version >= 15 may be required.
 Starting from version 2.0.0 Node version >= 18.16.0 is required.
 
-## Git version usage - up to version 2.0.0
-
-* crawl based on a config file
-```
-node .\sauron.js .\sample.config.json 
-```
-* same as above but start with a list of urls 
-```
-node .\sauron.js .\configs\sample.config.json .\configs\list.input.json
-```
-* launch test server (http://127.0.0.1) from /demo folder
-```
-npm run serve:demo
-```
-
 ## NPM version usage - from version 2.0.0
 * create a folder in the project root directory to store all related files for example ___crawler___
 
@@ -61,7 +46,7 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 {
     "id":             "projectId",
     "startURL":       "http://example.com",
-    "output":         "csv",
+    "output":         "json",
     "storeDefaultData": true,
     "custom": {
         "useCustom": true,
@@ -96,10 +81,16 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
         "user":   "login",
         "pass":   "pass"
     },
-    "cookieURL": null,
-    "cookies": [],
+    "cookies": [
+        {
+            "key": "testCookie",
+            "value": "test-value"
+        }
+    ],
+    "customHeaders": {
+        "User-Agent": "Mozilla/5.0 (SAURON NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0"
+    },
     "requireValidSSLCert": false,
-    "storeDefaultData": true,
     "saveStatusEach": 1000,
     "verbose": false,
     "requestCount": 4,
@@ -124,8 +115,8 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
-| ```cookieURL```       | ```string```  | URL for the cookie   |
-| ```cookies```       | ```array```  | Each cookie is a JSON entry; docs: https://www.npmjs.com/package/tough-cookie   |
+| ```cookies```       | ```array```  | Array of cookies represented by an object with keys: key and value   |
+| ```customHeaders```       | ```object```  | Object containg custom headers to be send with each request   |
 | ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
 | ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
 | ```verbose```      | ```boolean```  | Print more output to console   |
@@ -135,6 +126,12 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v3.0.0
+    * update required npm packages versions
+    * move from request-promise to axios
+        * now cookies array has only key and value keys and cookieURL configuration option is removed
+    * add customHeaders configuration option
+    * remove cheerio in favour of jsdom
 * v2.0.0
     * moving to npm package usage
 * v1.4.6
