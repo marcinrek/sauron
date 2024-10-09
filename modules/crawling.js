@@ -24,13 +24,13 @@ const crw = {
                     errorResponse = true;
                     responsePass = response;
                 })
-                .finally(() => {
+                .finally(async () => {
                     // Build page data object
                     let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
 
                     // Build custom response object
                     if (config.custom.useCustom) {
-                        custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
+                        await custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
                     }
 
                     // Save currently visited page data for output
