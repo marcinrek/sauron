@@ -118,6 +118,7 @@ const crw = {
                 statusCode: response.status,
                 headers: response.headers,
                 body: response.data,
+                raw: response,
             };
         } catch (error) {
             if (error.response) {

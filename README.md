@@ -126,6 +126,8 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 
 ## Changelog
+* v3.2.0
+    * add "raw" key to response which contains full axios response object
 * v3.1.0
     * make custom action async
 * v3.0.0
