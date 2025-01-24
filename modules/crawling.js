@@ -309,9 +309,13 @@ const crw = {
      * @returns {boolean}
      */
     urlInDomains: (url, domains) => {
-        let {hostname} = new URL(url);
-
-        return domains.indexOf(hostname) !== -1 ? true : false;
+        try {
+            let {hostname} = new URL(url);
+            return domains.indexOf(hostname) !== -1 ? true : false;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
     },
 
     /**
@@ -321,8 +325,13 @@ const crw = {
      * @returns {boolean}
      */
     urlInProto: (url, protocols) => {
-        let {protocol} = new URL(url);
-        return protocols.indexOf(protocol) !== -1 ? true : false;
+        try {
+            let {protocol} = new URL(url);
+            return protocols.indexOf(protocol) !== -1 ? true : false;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
     },
 
     /**
@@ -333,21 +342,26 @@ const crw = {
      * @returns {boolean}
      */
     urlInPathname: (url, pathnames, stripGET) => {
-        let {pathname} = new URL(url);
-        let inPath = false;
+        try {
+            let {pathname} = new URL(url);
+            let inPath = false;
 
-        pathnames.forEach((path) => {
-            if (pathname.indexOf(path) !== -1) {
-                inPath = true;
-            }
-            if (!stripGET) {
-                if (url.indexOf(path) !== -1) {
+            pathnames.forEach((path) => {
+                if (pathname.indexOf(path) !== -1) {
                     inPath = true;
                 }
-            }
-        });
+                if (!stripGET) {
+                    if (url.indexOf(path) !== -1) {
+                        inPath = true;
+                    }
+                }
+            });
 
-        return inPath;
+            return inPath;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
     },
 
     /**
