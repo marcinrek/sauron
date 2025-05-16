@@ -26,7 +26,7 @@ const crw = {
                 })
                 .finally(async () => {
                     // Build page data object
-                    let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter);
+                    let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter, config?.linksToLowercase || false);
 
                     // Build custom response object
                     if (config.custom.useCustom) {
@@ -139,12 +139,13 @@ const crw = {
      * @param {boolean} isError is the response from request that returned an error
      * @param {string} pageURL url of the page response comes from
      * @param {object} counter crawl counter object
+     * @param {boolean} linksToLowercase change all links to lowercase
      * @returns {object} page data object
      */
-    buildPageData: (response, isError, pageURL, counter) => {
+    buildPageData: (response, isError, pageURL, counter, linksToLowercase) => {
         let {statusCode} = response;
         let pageBody = response.body || response.message;
-        let pageLinks = pageBody ? crw.getLinksFromBody(pageBody, pageURL) : null;
+        let pageLinks = pageBody ? crw.getLinksFromBody(pageBody, pageURL, linksToLowercase) : null;
         let pageTitle = pageBody ? crw.getPageTitle(pageBody) : '';
         let errorData = isError ? (Object.prototype.hasOwnProperty.call(response, 'message') && statusCode !== 404 ? response.message : statusCode) : false;
         let pageData = {
@@ -235,7 +236,7 @@ const crw = {
      * @param {string} pageURL page url
      * @returns {array} array of links present on the page
      */
-    getLinksFromBody: (pageBody, pageURL) => {
+    getLinksFromBody: (pageBody, pageURL, linksToLowercase) => {
         const dom = new JSDOM(pageBody, {url: pageURL});
         const document = dom.window.document;
 
@@ -250,9 +251,9 @@ const crw = {
         //const relToAbs = (rel, base) => new URL(rel, base).href;
 
         // Function to process links
-        const processLinks = (selector, linkType) => {
+        const processLinks = (selector, linkType, linksToLowercase) => {
             document.querySelectorAll(selector).forEach((element) => {
-                const href = element.getAttribute('href');
+                const href = linksToLowercase ? element.getAttribute('href').toLowerCase() : element.getAttribute('href');
                 if (linkType === 'url' && href.startsWith('/')) {
                     links[linkType].push(crw.relToAbs(href, pageURL));
                 } else {
@@ -262,10 +263,10 @@ const crw = {
         };
 
         // Process different types of links
-        processLinks("a[href^='/'], a[href^='http']", 'url');
-        processLinks("a[href^='mailto:']", 'mailto');
-        processLinks("a[href^='tel:']", 'tel');
-        processLinks("a[href^='#']", 'hash');
+        processLinks("a[href^='/'], a[href^='http']", 'url', linksToLowercase);
+        processLinks("a[href^='mailto:']", 'mailto', linksToLowercase);
+        processLinks("a[href^='tel:']", 'tel', linksToLowercase);
+        processLinks("a[href^='#']", 'hash', linksToLowercase);
 
         // Remove duplicates
         for (const key in links) {

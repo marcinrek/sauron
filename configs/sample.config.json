@@ -68,5 +68,6 @@
   "requestCount": 4,
   "maxPages": -1,
   "stripGET": false,
-  "timeout": 5000
+  "timeout": 5000,
+  "linksToLowercase": false
 }

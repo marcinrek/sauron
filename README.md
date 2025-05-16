@@ -124,8 +124,11 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```maxPages```      | ```number```  | Max pages to crawl. To have no limit set ```-1```   |
 | ```stripGET```      | ```boolean```  | Strip GET parameters from links   |
 | ```timeout```      | ```number```  | Single request timeout in ms   |
+| ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v3.2.2
+    * add linksToLowercase config option - this uses all links found on page as a lowercase version
 * v3.2.1
     * fix crawl crashing on links with foobar syntax
 * v3.2.0
