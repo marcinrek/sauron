@@ -127,6 +127,8 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v3.2.3
+    * support hrefs starting with ? like href="?getKey=some_value"
 * v3.2.2
     * add linksToLowercase config option - this uses all links found on page as a lowercase version
 * v3.2.1

@@ -76,6 +76,7 @@ test('urlInDomains', () => {
 test('relToAbs', () => {
     expect(crw.relToAbs('/test/path/name', 'https://test.url.com/sample')).toBe('https://test.url.com/test/path/name');
     expect(crw.relToAbs('test/path/name', 'https://test.url.com/sample')).toBe('https://test.url.com/sample/test/path/name');
+    expect(crw.relToAbs('?test/path/name', 'https://test.url.com/sample')).toBe('https://test.url.com/sample?test/path/name');
 });
 
 test('getPageTitle', () => {

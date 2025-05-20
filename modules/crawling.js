@@ -254,7 +254,7 @@ const crw = {
         const processLinks = (selector, linkType, linksToLowercase) => {
             document.querySelectorAll(selector).forEach((element) => {
                 const href = linksToLowercase ? element.getAttribute('href').toLowerCase() : element.getAttribute('href');
-                if (linkType === 'url' && href.startsWith('/')) {
+                if (linkType === 'url' && (href.startsWith('/') || href.startsWith('?'))) {
                     links[linkType].push(crw.relToAbs(href, pageURL));
                 } else {
                     links[linkType].push(href);
@@ -263,7 +263,7 @@ const crw = {
         };
 
         // Process different types of links
-        processLinks("a[href^='/'], a[href^='http']", 'url', linksToLowercase);
+        processLinks("a[href^='?'], a[href^='/'], a[href^='http']", 'url', linksToLowercase);
         processLinks("a[href^='mailto:']", 'mailto', linksToLowercase);
         processLinks("a[href^='tel:']", 'tel', linksToLowercase);
         processLinks("a[href^='#']", 'hash', linksToLowercase);
@@ -298,6 +298,8 @@ const crw = {
 
         if (relUrl[0] === '/') {
             return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 && url.port !== '' ? `:${url.port}` : ''}${relUrl}`;
+        } else if (relUrl[0] === '?') {
+            return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 && url.port !== '' ? `:${url.port}` : ''}${url.pathname}${relUrl}`;
         } else {
             return `${url.protocol}//${url.hostname}${parseInt(url.port, 10) !== 80 && url.port !== '' ? `:${url.port}` : ''}${url.pathname}/${relUrl}`;
         }
