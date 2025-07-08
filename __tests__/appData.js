@@ -2,8 +2,8 @@ const {createAppData, appDateFromSaved} = require('appData');
 const hlp = require('helpers');
 
 test('createAppData', () => {
-    const sampleConfigPath = './configs/sample.config.json';
-    const config = hlp.readConfigJSON(sampleConfigPath);
+    const sampleConfigPath = './configs/sample.config.js';
+    const config = hlp.readConfig(sampleConfigPath);
     const startTimestamp = '2021-04-23_20-32-11';
 
     // Test

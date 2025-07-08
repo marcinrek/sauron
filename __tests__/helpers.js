@@ -1,9 +1,22 @@
 const hlp = require('helpers');
 
-test('readConfigJSON', () => {
-    const path = './configs/sample.config.json';
+test('readConfig', () => {
+    // Test with JavaScript config file
+    const jsPath = './configs/sample.config.js';
+    const jsConfig = hlp.readConfig(jsPath);
 
-    expect(hlp.readConfigJSON(path)).toBeInstanceOf(Object);
+    expect(jsConfig).toBeInstanceOf(Object);
+    expect(jsConfig.id).toBeDefined();
+    expect(jsConfig.startURL).toBeDefined();
+
+    // Test with JSON config file (if it exists)
+    const fs = require('fs');
+    const jsonPath = './configs/sample.config.json';
+
+    if (fs.existsSync(jsonPath)) {
+        const jsonConfig = hlp.readConfig(jsonPath);
+        expect(jsonConfig).toBeInstanceOf(Object);
+    }
 });
 
 test('getTimestamp', () => {

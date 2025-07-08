@@ -1,17 +1,32 @@
 const fs = require('fs');
+const path = require('path');
 const date = require('date-and-time');
 const chalk = require('chalk');
 
 module.exports = {
     /**
-     * Read config from a json file
+     * Read config from a js or json file
      * @param {string} path
-     * @returns {JSON} Parsed JSON
+     * @returns {Object} Parsed configuration object
      */
-    readConfigJSON: (path) => {
-        let rawData = fs.readFileSync(path);
-        let config = JSON.parse(rawData);
-        return config;
+    readConfig: (filePath) => {
+        // Get extension of the file
+        const ext = filePath.split('.').pop().toLowerCase();
+
+        // Handle JavaScript files with module.exports
+        if (ext === 'js') {
+            // Clear cache to allow re-reading
+            const absolutePath = path.resolve(filePath);
+            delete require.cache[absolutePath];
+            return require(absolutePath);
+        } else if (ext === 'json') {
+            // Handle JSON files
+            let rawData = fs.readFileSync(filePath);
+            let config = JSON.parse(rawData);
+            return config;
+        } else {
+            throw new Error(`Unsupported config file format: ${ext}. Only .json and .js files are supported.`);
+        }
     },
 
     /**

@@ -10,7 +10,7 @@ const cwd = process.cwd();
 const settings = require(`${cwd}/sauron.settings.js`);
 
 // Load crawler config
-const config = hlp.readConfigJSON(process.argv[2]);
+const config = hlp.readConfig(process.argv[2]);
 
 // Load crawler custom action config
 const custom = config.custom.useCustom ? require(`${cwd}/${settings.customDirectory}${config.custom.customFile}`) : null;
