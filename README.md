@@ -34,18 +34,19 @@ In the config file provide a path relative to that folder.
 
 * crawl based on a config file
 ```
-npx sauron .\configs\sample.config.json 
+npx sauron .\configs\sample.config.js 
 ```
 * same as above but start with a list of urls
 ```
-npx sauron .\configs\sample.config.json .\configs\list.input.json
+npx sauron .\configs\sample.config.js .\configs\list.input.json
 ```
 
 ## Config file example
 ```
-{
+module.exports = {
     "id":             "projectId",
     "startURL":       "http://example.com",
+    "sitemapURL":     "http://example.com/sitemap.xml",
     "output":         "json",
     "storeDefaultData": true,
     "custom": {
@@ -96,7 +97,8 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
     "requestCount": 4,
     "maxPages": -1,
     "stripGET": false,
-    "timeout":  5000
+    "timeout":  5000,
+    "linksToLowercase": false
 }
 ```
 
@@ -105,6 +107,7 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ------------------- |:-------------:| -------------------------------------------------------------------- |
 | ```id```          | ```string```  | Crawl id - used in output file name etc. |
 | ```startURL```       | ```string```  | Url to start crawl from                         |
+| ```sitemapURL```       | ```string```  | when provided, crawler will use sitemap.xml to get list of pages to crawl                 |
 | ```output```      | ```string```  | Crawl output method. Allowed values: ```console```, ```csv ```, ```json ```, ```blank ```        |
 | ```storeDefaultData```      | ```boolean```  | Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'        |
 | ```custom```      | ```object```  | Custom parsing actions settings        |
@@ -127,6 +130,9 @@ npx sauron .\configs\sample.config.json .\configs\list.input.json
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v4.0.0
+    * change config file format from json to js
+    * add sitemap.xml support
 * v3.2.3
     * support hrefs starting with ? like href="?getKey=some_value"
 * v3.2.2
