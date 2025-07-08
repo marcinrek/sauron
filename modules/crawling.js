@@ -4,6 +4,7 @@ const {JSDOM} = jsdom;
 const {URL} = require('url');
 const hlp = require('./helpers');
 const chalk = require('chalk');
+const {parseStringPromise} = require('xml2js');
 
 const crw = {
     // Single page crawl
@@ -11,9 +12,7 @@ const crw = {
         let responsePass;
         let errorResponse = false;
 
-        if (config.verbose) {
-            console.log(`About to crawl: ${chalk.blue(pageURL)}`);
-        }
+        console.log(`About to crawl: ${chalk.blue(pageURL)}`);
 
         return new Promise((resolve) => {
             crw.visitPage(pageURL, config)
@@ -175,9 +174,9 @@ const crw = {
      */
     updateCrawlList: (linkArray, pagesToVisit, visitedPages, discardedPages, config) => {
         let tempDiscardedPages = [];
-        let properLinksCount = 0;
-        let newLinksCount = linkArray.length;
-        let pagesToVisitCount = pagesToVisit.size;
+        // let properLinksCount = 0;
+        // let newLinksCount = linkArray.length;
+        // let pagesToVisitCount = pagesToVisit.size;
 
         // Loop new links
         linkArray.forEach((url) => {
@@ -201,7 +200,7 @@ const crw = {
             let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
 
             if (!urlAlreadyVisited && !dedupedUrlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
-                properLinksCount += 1;
+                // properLinksCount += 1;
                 pagesToVisit.add(sanitizedURL);
             } else if (dedupedUrlAlreadyVisited) {
                 if (config.verbose) {
@@ -223,9 +222,7 @@ const crw = {
         }
 
         // Print links count
-        if (config.verbose) {
-            console.log(chalk.cyan(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `));
-        }
+        // console.log(chalk.cyan(`Links found: ${newLinksCount} | Proper: ${properLinksCount} | Added: ${pagesToVisit.size - pagesToVisitCount} `));
 
         return pagesToVisit;
     },
@@ -409,6 +406,49 @@ const crw = {
         }
 
         return url;
+    },
+
+    /**
+     * Fetches a sitemap XML from the given URL and extracts all URLs listed in it.
+     * Handles both standard sitemaps (<urlset>) and sitemap indexes (<sitemapindex>) recursively.
+     *
+     * @async
+     * @function extractUrlsFromSitemap
+     * @param {string} sitemapUrl - The URL to the sitemap.xml file.
+     * @returns {Promise<string[]>} A promise that resolves to an array of URLs found in the sitemap.
+     * @throws Will not throw, but will log errors and return an empty array on failure.
+     *
+     * @example
+     * extractUrlsFromSitemap('https://example.com/sitemap.xml')
+     *   .then(urls => console.log(urls));
+     */
+    extractUrlsFromSitemap: async (sitemapUrl) => {
+        try {
+            // Fetch the sitemap XML
+            const response = await axios.get(sitemapUrl);
+            const xmlData = response.data;
+
+            // Parse the XML
+            const parsed = await parseStringPromise(xmlData);
+
+            // Extract URLs from <urlset>
+            if (parsed.urlset && parsed.urlset.url) {
+                return parsed.urlset.url.map((entry) => entry.loc[0]);
+            }
+
+            // Handle sitemap index (nested sitemaps)
+            if (parsed.sitemapindex && parsed.sitemapindex.sitemap) {
+                // Recursively fetch URLs from nested sitemaps
+                const nestedUrls = await Promise.all(parsed.sitemapindex.sitemap.map((s) => crw.extractUrlsFromSitemap(s.loc[0])));
+                return nestedUrls.flat();
+            }
+
+            // No URLs found
+            return [];
+        } catch (error) {
+            console.error('Error fetching or parsing sitemap:', error.message);
+            return [];
+        }
     },
 };
 

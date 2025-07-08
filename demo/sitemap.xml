@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>http://localhost:8080/about.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://localhost:8080/news.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://localhost:8080/news/news01.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://localhost:8080/news/news02.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://localhost:8080/news/news03.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://localhost:8080/fromSitemap/sampleSitemapLink.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+    <url>
+        <loc>http://totally-not-existing-url.com/this-is-not-a-valid-url.html</loc>
+        <lastmod>2025-01-01</lastmod>
+    </url>
+</urlset>

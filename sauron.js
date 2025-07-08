@@ -24,48 +24,67 @@ let appData = createAppData(config, hlp.getTimestamp('YYYY-MM-DD_HH-mm-ss'), url
 // Create output directory if it doesn't exist
 hlp.createDirIfRequired(settings.outputDirectory);
 
-// Check does save file exista and if so carry on from that point
-hlp.createDirIfRequired(settings.saveDirectory);
-hlp.createDirIfRequired(`${settings.saveDirectory}/${config.id}`);
-let saveFiles = fs.readdirSync(`${settings.saveDirectory}/${config.id}`);
+// Setup crawler
+const setup = async () => {
+    /**
+     * Handle sitemap
+     */
+    if (config.sitemapURL) {
+        console.log(chalk.magenta(`Sitemap URL provided: ${config.sitemapURL} ... Fetching links ...`));
+        let sitemapData = await crw.extractUrlsFromSitemap(config.sitemapURL);
 
-// Load save data
-if (!saveFiles.length) {
-    // Error reading save directory
-    console.log(chalk.cyan('Save directory does not exist or is empty. Starting fresh ...'));
-} else {
-    // Save directory exists
-    let filteredFiles = saveFiles.filter((fileName) => fileName.indexOf(`${config.id}_`) === 0);
+        // Remove duplicates
+        sitemapData = [...new Set(sitemapData)];
+        console.log(chalk.magenta(`Found: ${sitemapData.length} links in sitemap`));
 
-    // There is a proper save file
-    if (filteredFiles.length) {
-        let saveFilePath = filteredFiles[filteredFiles.length - 1];
-        let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}/${config.id}/${saveFilePath}`));
+        // Validate all sitemap links and add to appData
+        crw.updateCrawlList(sitemapData, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) => appData.pagesToVisit.add(url));
+    } else {
+        console.log(chalk.magenta('No sitemap URL provided.'));
+    }
 
-        // Rewrite data from save file
-        if (!savedData.finished) {
-            // Display info about save data being loded
-            console.log(chalk.green(`Reading save file: ${saveFilePath}`));
+    /**
+     * Handle save file
+     */
 
-            // Write new appData from save file
-            appData = appDateFromSaved(savedData);
+    // Check does save file exista and if so carry on from that point
+    hlp.createDirIfRequired(settings.saveDirectory);
+    hlp.createDirIfRequired(`${settings.saveDirectory}/${config.id}`);
+    let saveFiles = fs.readdirSync(`${settings.saveDirectory}/${config.id}`);
 
-            // Get custom data if present
-            if (custom) {
-                custom.data = appData.customData;
-            }
-            if (custom && config.verbose) {
-                console.log(chalk.cyan('Loaded custom.data from save:'));
-                console.log(custom.data);
+    if (!saveFiles.length) {
+        // Error reading save directory
+        console.log(chalk.cyan('Save directory does not exist or is empty. Starting fresh ...'));
+    } else {
+        // Save directory exists
+        let filteredFiles = saveFiles.filter((fileName) => fileName.indexOf(`${config.id}_`) === 0);
+
+        // There is a proper save file
+        if (filteredFiles.length) {
+            let saveFilePath = filteredFiles[filteredFiles.length - 1];
+            let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}/${config.id}/${saveFilePath}`));
+
+            // Rewrite data from save file
+            if (!savedData.finished) {
+                // Display info about save data being loded
+                console.log(chalk.green(`Reading save file: ${saveFilePath}`));
+
+                // Write new appData from save file
+                appData = appDateFromSaved(savedData);
+
+                // Get custom data if present
+                if (custom) {
+                    custom.data = appData.customData;
+                }
+            } else {
+                console.log(chalk.cyan(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`));
             }
         } else {
-            console.log(chalk.cyan(`Found save file: ${saveFilePath} but this crawl is finished. Starting fresh ...`));
+            // There is no proper save file
+            console.log(chalk.cyan('Save directory exists but save file not found. Starting fresh ...'));
         }
-    } else {
-        // There is no proper save file
-        console.log(chalk.cyan('Save directory exists but save file not found. Starting fresh ...'));
     }
-}
+};
 
 // Main crawl flow function
 const crawl = () => {
@@ -126,5 +145,11 @@ const crawl = () => {
     }
 };
 
-// Init
-crawl();
+// Init function
+const init = async () => {
+    await setup();
+    crawl();
+};
+
+// Run init function
+init();

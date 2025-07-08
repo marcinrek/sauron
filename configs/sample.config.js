@@ -4,6 +4,7 @@
  * Configuration options:
  * - id: Crawl id - used in output file name etc.
  * - startURL: Url to start crawl from
+ * - sitemapURL: when provided, crawler will use sitemap.xml to get list of pages to crawl
  * - output: Crawl output method. Allowed values: console, csv, json, blank
  * - storeDefaultData: Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'
  * - custom: Custom parsing actions settings
@@ -27,15 +28,16 @@
  */
 
 module.exports = {
-    id: 'm5500',
-    startURL: 'http://127.0.0.1:8080/',
+    id: 'testPage',
+    startURL: 'http://localhost:8080/',
+    sitemapURL: 'http://localhost:8080/sitemap.xml',
     output: 'json',
     storeDefaultData: true,
     custom: {
         useCustom: true,
         customFile: 'extract.images',
     },
-    allowedDomains: ['127.0.0.1'],
+    allowedDomains: ['localhost'],
     allowedProtocols: ['http:', 'https:'],
     dedupeProtocol: true,
     allowLinksFrom: {
