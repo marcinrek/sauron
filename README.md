@@ -5,7 +5,7 @@ Crawler is designed to work as a test tool. It can extract all links from a give
 ## Example use cases
 * check site for broken (404) links
 * extract image urls from site
-* crawl auction/ecommerce pages to calculate avarage prices
+* crawl auction/ecommerce pages to calculate average prices
 * extract all phone numbers from site
 
 ## Requirements 
@@ -112,15 +112,15 @@ module.exports = {
 | ```storeDefaultData```      | ```boolean```  | Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'        |
 | ```custom```      | ```object```  | Custom parsing actions settings        |
 | ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check.               |
-| ```allowedProtocoles```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
+| ```allowedProtocols```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
 | ```dedupeProtocol```        | ```boolean```  | De-duplicate links based on protocol.               |
-| ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that matche given requirements will be crawled.   |
-| ```crawlLinks```       | ```object```  | Only links that matche given requirements will be crawled. Example patter to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
-| ```saveCrawlData```       | ```object```  | Only links that matche given requirements will be saved to output.   |
+| ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that match given requirements will be crawled.   |
+| ```crawlLinks```       | ```object```  | Only links that match given requirements will be crawled. Example pattern to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
+| ```saveCrawlData```       | ```object```  | Only links that match given requirements will be saved to output.   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
 | ```cookies```       | ```array```  | Array of cookies represented by an object with keys: key and value   |
-| ```customHeaders```       | ```object```  | Object containg custom headers to be send with each request   |
-| ```requireValidSSLCert```       | ```boolean```  | Check is SSL certificates valid   |
+| ```customHeaders```       | ```object```  | Object containing custom headers to be sent with each request   |
+| ```requireValidSSLCert```       | ```boolean```  | Check if SSL certificates are valid   |
 | ```saveStatusEach```      | ```number```  | Save status each N crawls to enable abort and continue later   |
 | ```verbose```      | ```boolean```  | Print more output to console   |
 | ```requestCount```      | ```number```  | Number of requests to be run in one batch   |
@@ -158,7 +158,7 @@ module.exports = {
     * save custom.data with "saveStatusEach" - now when custom action has a "data" property, which can be an array or an object, it will be stored in the save file every N crawled URLs
     * tidy sample config items position and descriptions
 * v1.4.0
-    * saves each output so separate directory under ./output with name equal to crawl start time
+    * saves each output to separate directory under ./output with name equal to crawl start time
     * when stripGET is enabled pathAllow/Deny is considered within the full URL including GET parameters
 * v1.3.0
     * add option to send cookies with tough-cookie https://www.npmjs.com/package/tough-cookie
@@ -168,7 +168,7 @@ module.exports = {
     * added settings.json for application settings
     * add option to disable storing default data like links, statusCodes etc.
     * add option to save progress after every N pages crawled - this is then picked up automatically on next crawl from the same config file (by config.id)
-    * creat output and save folders on app start - remove check on each save
+    * create output and save folders on app start - remove check on each save
     * added option for verbose output to console
 * v1.1.0
     * fix pathnameAllow/Deny check
