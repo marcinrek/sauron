@@ -86,19 +86,49 @@ const setup = async () => {
     }
 };
 
+// Finish crawl function
+const finishCrawl = () => {
+    // Create final save
+    appData.finished = true;
+    saveStatus(config, appData);
+
+    // Creating output folder
+    const outputDir = `${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`;
+    hlp.createDirIfRequired(settings.outputDirectory);
+    hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}`);
+    hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`);
+
+    // Print custom output if required
+    if (config.custom.useCustom) {
+        custom.out(config, appData.startTimestamp, outputDir);
+    }
+
+    // Dump discarded URL list
+    if (appData.discardedPages.size) {
+        dumpDiscarder(config, appData.startTimestamp, appData.discardedPages, outputDir);
+    }
+
+    // Print generic output
+    if (config.storeDefaultData) {
+        out(config, appData.startTimestamp, appData.outputData, outputDir);
+    }
+
+    // Crawl report
+    createReport(config, appData, outputDir);
+};
+
 // Main crawl flow function
-const crawl = () => {
+const crawl = async () => {
     // There is something to crawl AND (limit not reached OR there is no limit)
     if (appData.pagesToVisit.size && (appData.counter.limit >= appData.counter.crawled || appData.counter.limit === -1)) {
         // First request
         let pageURL = appData.pagesToVisit.values().next().value;
-        let c1 = crw.singleCrawl(pageURL, config, appData, custom);
 
         // Remaining requests
-        let urls = hlp.getNextNUrls(appData.pagesToVisit, config.requestCount - 1);
+        let urls = [pageURL].concat(hlp.getNextNUrls(appData.pagesToVisit, config.requestCount - 1));
 
-        // All requests resolved
-        Promise.all(hlp.buildCrawlPromisArray(c1, urls, crw.singleCrawl, config, appData, custom)).then(() => {
+        // Wait for all requests to be resolved
+        Promise.all(hlp.buildCrawlPromisArray(urls, crw.singleCrawl, config, appData, custom)).then(() => {
             // Save progress if required
             if (appData.saveRequired) {
                 // Change flag
@@ -115,33 +145,7 @@ const crawl = () => {
             crawl();
         });
     } else {
-        // Create final save
-        appData.finished = true;
-        saveStatus(config, appData);
-
-        // Creating output folder
-        const outputDir = `${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`;
-        hlp.createDirIfRequired(settings.outputDirectory);
-        hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}`);
-        hlp.createDirIfRequired(`${settings.outputDirectory}/${config.id}/${appData.startTimestamp}`);
-
-        // Print custom output if required
-        if (config.custom.useCustom) {
-            custom.out(config, appData.startTimestamp, outputDir);
-        }
-
-        // Dump discarded URL list
-        if (appData.discardedPages.size) {
-            dumpDiscarder(config, appData.startTimestamp, appData.discardedPages, outputDir);
-        }
-
-        // Print generic output
-        if (config.storeDefaultData) {
-            out(config, appData.startTimestamp, appData.outputData, outputDir);
-        }
-
-        // Crawl report
-        createReport(config, appData, outputDir);
+        finishCrawl();
     }
 };
 

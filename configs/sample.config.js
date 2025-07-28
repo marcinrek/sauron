@@ -72,7 +72,7 @@ module.exports = {
     requireValidSSLCert: false,
     saveStatusEach: 3,
     verbose: false,
-    requestCount: 2,
+    requestCount: 4,
     maxPages: -1,
     stripGET: false,
     timeout: 5000,

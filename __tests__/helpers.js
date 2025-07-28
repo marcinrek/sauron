@@ -58,12 +58,42 @@ test('getNextNUrls', () => {
 });
 
 test('buildCrawlPromisArray', () => {
-    const c1 = {};
-    const singleCrawl = () => {};
-    const config = {};
-    const appData = {};
-    const custom = {};
+    // Mock singleCrawl function that returns a promise
+    const mockSingleCrawl = jest.fn(() => Promise.resolve('crawl result'));
+    const config = {timeout: 5000};
+    const appData = {visitedPages: new Set()};
+    const custom = {customAction: true};
 
-    expect(hlp.buildCrawlPromisArray(c1, [], singleCrawl, config, appData, custom).length).toBe([].length + 1);
-    expect(hlp.buildCrawlPromisArray(c1, [1, 2, 3], singleCrawl, config, appData, custom).length).toBe([1, 2, 3].length + 1);
+    // Test with empty array
+    const emptyResult = hlp.buildCrawlPromisArray([], mockSingleCrawl, config, appData, custom);
+    expect(emptyResult).toEqual([]);
+    expect(mockSingleCrawl).not.toHaveBeenCalled();
+
+    // Reset mock
+    mockSingleCrawl.mockClear();
+
+    // Test with multiple URLs
+    const urls = ['http://example.com', 'http://test.com', 'http://demo.com'];
+    const result = hlp.buildCrawlPromisArray(urls, mockSingleCrawl, config, appData, custom);
+
+    // Verify return value is an array with correct length
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBe(urls.length);
+
+    // Verify each element is a promise
+    result.forEach((item) => {
+        expect(item).toBeInstanceOf(Promise);
+    });
+
+    // Verify singleCrawl was called for each URL with correct parameters
+    expect(mockSingleCrawl).toHaveBeenCalledTimes(urls.length);
+
+    urls.forEach((url, index) => {
+        expect(mockSingleCrawl).toHaveBeenNthCalledWith(index + 1, url, config, appData, custom);
+    });
+
+    // Test that the promises resolve correctly
+    return Promise.all(result).then((results) => {
+        expect(results).toEqual(['crawl result', 'crawl result', 'crawl result']);
+    });
 });

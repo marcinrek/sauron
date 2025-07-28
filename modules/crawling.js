@@ -8,67 +8,67 @@ const {parseStringPromise} = require('xml2js');
 
 const crw = {
     // Single page crawl
-    singleCrawl: (pageURL, config, appData, custom) => {
+    singleCrawl: async (pageURL, config, appData, custom) => {
         let responsePass;
         let errorResponse = false;
 
         console.log(`About to crawl: ${chalk.blue(pageURL)}`);
 
-        return new Promise((resolve) => {
-            crw.visitPage(pageURL, config)
-                .then((response) => {
-                    responsePass = response;
-                })
-                .catch((response) => {
-                    errorResponse = true;
-                    responsePass = response;
-                })
-                .finally(async () => {
-                    // Build page data object
-                    let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter, config?.linksToLowercase || false);
+        /**
+         * Make a single request to a page
+         */
+        try {
+            // Visit page
+            const crawlResult = await crw.visitPage(pageURL, config);
 
-                    // Build custom response object
-                    if (config.custom.useCustom) {
-                        await custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
-                    }
+            // Assign responce to a responsePass variable
+            responsePass = crawlResult;
+        } catch (error) {
+            // Flag error
+            errorResponse = true;
 
-                    // Save currently visited page data for output
-                    if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
-                        appData.outputData[pageURL] = pageData;
-                    }
+            // Assign error to a responsePass variable
+            responsePass = error;
+        } finally {
+            // Build page data object
+            let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter, config?.linksToLowercase || false);
 
-                    // Mark page as crawled
-                    appData.visitedPages.add(pageURL);
+            // Build custom response object
+            if (config.custom.useCustom) {
+                await custom.action(responsePass, errorResponse, pageURL, appData.counter, config);
+            }
 
-                    // Work on pagesToVisit only if crawled url matches pattern
-                    if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
-                        // Add new links to list if it matches config.allowLinksFromPatter pattern
-                        crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) =>
-                            appData.pagesToVisit.add(url),
-                        );
-                    }
+            // Save currently visited page data for output
+            if (crw.checkConfigConditions(pageURL, config.saveCrawlData) && config.storeDefaultData) {
+                appData.outputData[pageURL] = pageData;
+            }
 
-                    // Remove currently visited page from list
-                    appData.pagesToVisit.delete(pageURL);
+            // Mark page as crawled
+            appData.visitedPages.add(pageURL);
 
-                    // Inc counters
-                    appData.counter.crawled += 1;
+            // Work on pagesToVisit only if crawled url matches pattern
+            if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
+                // Add new links to list if it matches config.allowLinksFromPatter pattern
+                crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) => appData.pagesToVisit.add(url));
+            }
 
-                    // Display info about which page is going to be crawled
-                    let finished = appData.counter.crawled;
-                    let total = appData.counter.crawled + appData.pagesToVisit.size - 1;
-                    let percent = Math.round((finished / total) * 10000) / 100;
-                    console.log(`${finished} of ${total} (${percent}%) [${chalk.yellow(hlp.getTimestamp('HH:mm:ss'))}] Crawling: ${chalk.green(pageURL)}`);
+            // Remove currently visited page from list
+            appData.pagesToVisit.delete(pageURL);
 
-                    // Mark that save is required
-                    if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
-                        appData.saveRequired = true;
-                    }
+            // Inc counters
+            appData.counter.crawled += 1;
 
-                    // Resolve this crawl
-                    resolve();
-                });
-        });
+            // Display info about which page is going to be crawled
+            let finished = appData.counter.crawled;
+            let total = appData.counter.crawled + appData.pagesToVisit.size;
+            let percent = Math.round((finished / total) * 10000) / 100;
+            console.log(`${finished} of ${total} (${percent}%) [${chalk.yellow(hlp.getTimestamp('HH:mm:ss'))}] Crawling: ${chalk.green(pageURL)}`);
+
+            // Mark that save is required
+            if (!(appData.counter.crawled % config.saveStatusEach) && config.saveStatusEach !== -1) {
+                appData.saveRequired = true;
+            }
+        }
     },
 
     /**
