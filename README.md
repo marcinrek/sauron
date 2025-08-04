@@ -133,6 +133,7 @@ module.exports = {
 * v4.0.0
     * change config file format from json to js
     * add sitemap.xml support
+    * code base refactor
 * v3.2.3
     * support hrefs starting with ? like href="?getKey=some_value"
 * v3.2.2
