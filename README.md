@@ -130,6 +130,8 @@ module.exports = {
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v4.0.1
+    * allow allowedDomains to accept a regex
 * v4.0.0
     * change config file format from json to js
     * add sitemap.xml support

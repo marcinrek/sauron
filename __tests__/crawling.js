@@ -72,10 +72,11 @@ test('urlInProto', () => {
 });
 
 test('urlInDomains', () => {
-    const url = 'https://test.url/web_path';
+    const url = 'https://subdomain.test.url/web_path';
 
-    expect(crw.urlInDomains(url, ['test.url', 'test.url.com'])).toBe(true);
-    expect(crw.urlInDomains(url, ['test.url.com'])).toBe(false);
+    expect(crw.urlInDomains(url, ['subdomain.test.url', 'test.url.com'])).toBe(true);
+    expect(crw.urlInDomains(url, ['test.url', 'test.url.com'])).toBe(false);
+    expect(crw.urlInDomains(url, ['test.url', /.+\.test\.url/gi])).toBe(true);
 });
 
 test('relToAbs', () => {

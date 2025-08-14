@@ -1,6 +1,6 @@
 {
   "name": "sauron-crawler",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Basic page crawler written in nodejs",
   "main": "sauron.js",
   "scripts": {

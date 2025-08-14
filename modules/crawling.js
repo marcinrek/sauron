@@ -305,13 +305,30 @@ const crw = {
     /**
      * Check is given url in an array of allowed domains
      * @param {string} url url to test
-     * @param {string} domains array to test agains
+     * @param {array} domains array of strings or regex patterns to test against
      * @returns {boolean}
      */
     urlInDomains: (url, domains) => {
         try {
             let {hostname} = new URL(url);
-            return domains.indexOf(hostname) !== -1 ? true : false;
+
+            // Check each domain entry (string or regex)
+            for (let domain of domains) {
+                // If domain is a RegExp object, test against it
+                if (domain instanceof RegExp) {
+                    if (domain.test(hostname)) {
+                        return true;
+                    }
+                }
+                // If domain is a string, check for exact match
+                else if (typeof domain === 'string') {
+                    if (hostname === domain) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         } catch (err) {
             console.log(err);
             return false;
