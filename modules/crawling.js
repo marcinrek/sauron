@@ -450,13 +450,13 @@ const crw = {
 
             // Extract URLs from <urlset>
             if (parsed.urlset && parsed.urlset.url) {
-                return parsed.urlset.url.map((entry) => entry.loc[0]);
+                return parsed.urlset.url.map((entry) => entry.loc[0].trim());
             }
 
             // Handle sitemap index (nested sitemaps)
             if (parsed.sitemapindex && parsed.sitemapindex.sitemap) {
                 // Recursively fetch URLs from nested sitemaps
-                const nestedUrls = await Promise.all(parsed.sitemapindex.sitemap.map((s) => crw.extractUrlsFromSitemap(s.loc[0])));
+                const nestedUrls = await Promise.all(parsed.sitemapindex.sitemap.map((s) => crw.extractUrlsFromSitemap(s.loc[0].trim())));
                 return nestedUrls.flat();
             }
 
