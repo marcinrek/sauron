@@ -130,6 +130,11 @@ module.exports = {
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v4.1.0
+    * add "urlTransformFunc" option to config - this is a function that each URL found on the page will go through before adding to list of urls to crawl. Use cases:
+        * there is a need for some complex modification of it
+        * some urls should not be crawled at all but the logic behind it is complex
+        * something neets to be appended/removed from all/some urls that are to be crawled 
 * v4.0.2
     * minor fix for sitemaps with new lines in \<loc\>
 * v4.0.1

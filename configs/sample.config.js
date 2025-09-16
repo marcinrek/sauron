@@ -19,6 +19,7 @@
  * - customHeaders: Object containg custom headers to be send with each request
  * - requireValidSSLCert: Check is SSL certificates valid
  * - saveStatusEach: Save status each N crawls to enable abort and continue later
+ * - urlTransformFunc: Custom URL transformation function applied to each discovered URL before crawling.
  * - verbose: Print more output to console
  * - requestCount: Number of requests to be run in one batch
  * - maxPages: Max pages to crawl. To have no limit set -1
@@ -54,6 +55,9 @@ module.exports = {
         pattern: '^.*',
         pathnameAllow: [],
         pathnameDeny: [],
+    },
+    urlTransformFunc: (crawledUrl) => {
+        return crawledUrl;
     },
     httpAuth: {
         enable: false,

@@ -178,6 +178,9 @@ const crw = {
         // let newLinksCount = linkArray.length;
         // let pagesToVisitCount = pagesToVisit.size;
 
+        // Define urlTransformFunc with a default function that returns the url as is
+        const urlTransformFunc = config?.urlTransformFunc || ((url) => url);
+
         // Loop new links
         linkArray.forEach((url) => {
             let urlAlreadyVisited = false;
@@ -193,24 +196,30 @@ const crw = {
                 }
             }
 
-            urlAlreadyVisited = visitedPages.has(sanitizedURL);
+            // Modify url if urlModifyFunc is provided
+            sanitizedURL = urlTransformFunc(sanitizedURL);
 
-            let urlInAllowedDomains = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
-            let urlInAllowedProtocols = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
-            let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
+            // URL is not null
+            if (sanitizedURL) {
+                urlAlreadyVisited = visitedPages.has(sanitizedURL);
 
-            if (!urlAlreadyVisited && !dedupedUrlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
-                // properLinksCount += 1;
-                pagesToVisit.add(sanitizedURL);
-            } else if (dedupedUrlAlreadyVisited) {
-                if (config.verbose) {
-                    console.log(`Deduped URL: ${chalk.cyan(sanitizedURL)}`);
+                let urlInAllowedDomains = config.allowedDomains.length !== 0 ? crw.urlInDomains(sanitizedURL, config.allowedDomains) : true;
+                let urlInAllowedProtocols = config.allowedProtocols.length !== 0 ? crw.urlInProto(sanitizedURL, config.allowedProtocols) : true;
+                let validateCrawlLinks = crw.checkConfigConditions(sanitizedURL, config.crawlLinks);
+
+                if (!urlAlreadyVisited && !dedupedUrlAlreadyVisited && urlInAllowedDomains && urlInAllowedProtocols && validateCrawlLinks) {
+                    // properLinksCount += 1;
+                    pagesToVisit.add(sanitizedURL);
+                } else if (dedupedUrlAlreadyVisited) {
+                    if (config.verbose) {
+                        console.log(`Deduped URL: ${chalk.cyan(sanitizedURL)}`);
+                    }
+                } else if (!validateCrawlLinks) {
+                    if (config.verbose) {
+                        tempDiscardedPages.push(sanitizedURL);
+                    }
+                    discardedPages.add(sanitizedURL);
                 }
-            } else if (!validateCrawlLinks) {
-                if (config.verbose) {
-                    tempDiscardedPages.push(sanitizedURL);
-                }
-                discardedPages.add(sanitizedURL);
             }
         });
 
