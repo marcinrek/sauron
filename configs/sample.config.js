@@ -11,6 +11,7 @@
  * - allowedDomains: Only domains from this array will be crawled. Empty array will discard this check.
  * - allowedProtocols: Page protocols to crawl. Allowed values: http, https. Empty array will discard this check.
  * - dedupeProtocol: De-duplicate links based on protocol.
+ * - headCheck: Perform HEAD check in given for specific pages and do not crawl them if content type is outside of crawlMIMETypes
  * - allowLinksFrom: Only links that are found on a urls that match given requirements will be crawled
  * - crawlLinks: Only links that match given requirements will be crawled
  * - saveCrawlData: Only links that match given requirements will be saved to output
@@ -41,18 +42,23 @@ module.exports = {
     allowedDomains: ['localhost'],
     allowedProtocols: ['http:', 'https:'],
     dedupeProtocol: true,
+    headCheck: {
+        enabled: true,
+        pattern: new RegExp('^.*', 'i'),
+        crawlMIMETypes: ['text/html', 'application/xhtml+xml'],
+    },
     allowLinksFrom: {
-        pattern: '^.*',
+        pattern: new RegExp('^.*', 'i'),
         pathnameAllow: [],
         pathnameDeny: [],
     },
     crawlLinks: {
-        pattern: '^.*',
+        pattern: new RegExp('^.*', 'i'),
         pathnameAllow: [],
         pathnameDeny: [],
     },
     saveCrawlData: {
-        pattern: '^.*',
+        pattern: new RegExp('^.*', 'i'),
         pathnameAllow: [],
         pathnameDeny: [],
     },

@@ -72,6 +72,18 @@ const crw = {
     },
 
     /**
+     * Check is pageURL mime type allowed to be crawled
+     * @param {Array} allowedMimeTypes array of allowed mime types
+     * @param {String} mimeType tested mimeType
+     * @returns {Boolean} true when allowed
+     */
+    validateHEADMimeType: (allowedMimeTypes, mimeType) => {
+        if (!mimeType) return false;
+        const normalized = mimeType.toLowerCase();
+        return allowedMimeTypes.some((t) => normalized.includes(String(t).toLowerCase()));
+    },
+
+    /**
      * Crawl a single URL
      * @param {string} pageURL Url of the page to crawl
      * @param {json} config configuration json
@@ -108,6 +120,37 @@ const crw = {
         if (config.httpAuth && config.httpAuth.enable) {
             const auth = Buffer.from(`${config.httpAuth.user}:${config.httpAuth.pass}`).toString('base64');
             options.headers.Authorization = `Basic ${auth}`;
+        }
+
+        /**
+         * HEAD check
+         */
+        if (config.headCheck.enabled) {
+            // Check pattern
+            if (config.headCheck.pattern.test(pageURL)) {
+                console.log(chalk.magenta(`Performing HEAD check on ${pageURL} ...`));
+
+                // Rewrite options to change request type but keep the rest
+                const headOption = {...options};
+                headOption.method = 'HEAD';
+
+                // Make head request
+                const headResponse = await axios(headOption);
+                const validMimeType = crw.validateHEADMimeType(config.headCheck.crawlMIMETypes, headResponse.headers['content-type']);
+
+                // Return instantly when mimeType not valid
+                if (!validMimeType) {
+                    console.log(chalk.red(`"${pageURL}" mimeType is "${headResponse.headers['content-type']}" - will not crawl.`));
+                    return {
+                        statusCode: headResponse.status,
+                        headers: headResponse.headers,
+                        body: '',
+                        raw: headResponse,
+                    };
+                } else {
+                    console.log(chalk.green(`"${pageURL}" mimeType is "${headResponse.headers['content-type']}" - crawling.`));
+                }
+            }
         }
 
         // Make request
@@ -397,11 +440,10 @@ const crw = {
      * @returns {boolean}
      */
     checkConfigConditions: (pageURL, configObj) => {
-        let pattern = new RegExp(configObj.pattern, 'g');
         let pathnameAllow = configObj.pathnameAllow.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameAllow, configObj.stripGET) : true;
         let pathnameDeny = configObj.pathnameDeny.length !== 0 ? crw.urlInPathname(pageURL, configObj.pathnameDeny, configObj.stripGET) : false;
 
-        return pattern.test(pageURL) && pathnameAllow && !pathnameDeny;
+        return configObj.pattern.test(pageURL) && pathnameAllow && !pathnameDeny;
     },
 
     /**

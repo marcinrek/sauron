@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>http://localhost:4000/pageFromSitemap</loc>
+        <loc>http://localhost:8080/pageFromSitemap</loc>
         <lastmod>2025-01-01</lastmod>
     </url>
     <url>
-        <loc>http://localhost:4000/about</loc>
-        <lastmod>2025-01-01</lastmod>
-    </url>
-    <url>
-        <loc>
-            http://localhost:4000/about-us/
-        </loc>
+        <loc>http://localhost:8080/about</loc>
         <lastmod>2025-01-01</lastmod>
     </url>
 </urlset>

@@ -62,20 +62,28 @@ module.exports = {
         "https:"
     ],
     "dedupeProtocol": true,
+    headCheck: {
+        enabled: true,
+        pattern: new RegExp('^.*', 'i'),
+        crawlMIMETypes: ['text/html', 'application/xhtml+xml'],
+    },
     "allowLinksFrom": {
-        "pattern":        "^.*",
+        "pattern":       new RegExp('^.*', 'i'),
         "pathnameAllow": [],
         "pathnameDeny":  []
     },
     "crawlLinks": {
-        "pattern":       "^.*",
+        "pattern":       new RegExp('^.*', 'i'),
         "pathnameAllow": [],
         "pathnameDeny":  []
     },
     "saveCrawlData": {
-        "pattern":       "^.*",
+        "pattern":       new RegExp('^.*', 'i'),
         "pathnameAllow": [],
         "pathnameDeny":  []
+    },
+    urlTransformFunc: (crawledUrl) => {
+        return crawledUrl;
     },
     "httpAuth": {
         "enable": false,
@@ -114,9 +122,11 @@ module.exports = {
 | ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check.               |
 | ```allowedProtocols```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
 | ```dedupeProtocol```        | ```boolean```  | De-duplicate links based on protocol.               |
+| ```headCheck```       | ```object```  | Perform HEAD check in given for specific pages and do not crawl them if content type is outside of crawlMIMETypes   |
 | ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that match given requirements will be crawled.   |
 | ```crawlLinks```       | ```object```  | Only links that match given requirements will be crawled. Example pattern to exclude "/files/" path and PDF files ```^(.(?!.*\\/files\\/|.*\\.pdf$))*```   |
 | ```saveCrawlData```       | ```object```  | Only links that match given requirements will be saved to output.   |
+| ```urlTransformFunc```       | ```function```  | Custom URL transformation function applied to each discovered URL before crawling.   |
 | ```httpAuth```       | ```object```  | Settings for basic authentication   |
 | ```cookies```       | ```array```  | Array of cookies represented by an object with keys: key and value   |
 | ```customHeaders```       | ```object```  | Object containing custom headers to be sent with each request   |
@@ -130,6 +140,9 @@ module.exports = {
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
 ## Changelog
+* v5.0.0-rc.1
+    * add HEAD check option
+    * change all config regex strings to be an actual RegExp object
 * v4.1.0
     * add "urlTransformFunc" option to config - this is a function that each URL found on the page will go through before adding to list of urls to crawl. Use cases:
         * there is a need for some complex modification of it

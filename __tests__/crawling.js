@@ -19,12 +19,12 @@ test('stripHash', () => {
 
 test('checkConfigConditions', () => {
     const config1 = {
-        pattern: '^(https://).*some_path.*',
+        pattern: new RegExp('^(https://).*some_path.*', 'i'),
         pathnameAllow: ['another', '/even_more_path/'],
         pathnameDeny: ['.pdf', '.jpg'],
     };
     const config2 = {
-        pattern: '^.*',
+        pattern: new RegExp('^.*', 'i'),
         pathnameAllow: [],
         pathnameDeny: ['.pdf', '.jpg'],
     };
@@ -265,4 +265,13 @@ describe('extractUrlsFromSitemap', () => {
         expect(result).toEqual(['https://example.com/final-page']);
         expect(mockedAxios.get).toHaveBeenCalledTimes(3);
     });
+});
+
+test('validateHEADMimeType', () => {
+    const allowedMimeTypesArray = ['text/html', 'application/xhtml+xml'];
+
+    expect(crw.validateHEADMimeType(allowedMimeTypesArray, 'text/html; charset=UTF-8')).toBe(true);
+    expect(crw.validateHEADMimeType(allowedMimeTypesArray, 'TEXT/HtMl; charset=UTF-16')).toBe(true);
+    expect(crw.validateHEADMimeType(allowedMimeTypesArray, 'image/svg+xml')).toBe(false);
+    expect(crw.validateHEADMimeType([], 'text/html; charset=UTF-8')).toBe(false);
 });
