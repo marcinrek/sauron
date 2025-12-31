@@ -5,6 +5,7 @@ const {URL} = require('url');
 const hlp = require('./helpers');
 const chalk = require('chalk');
 const {parseStringPromise} = require('xml2js');
+const {emitAsync} = require('./plugins');
 
 const crw = {
     // Single page crawl
@@ -12,18 +13,28 @@ const crw = {
         let responsePass;
         let errorResponse = false;
 
-        console.log(`About to crawl: ${chalk.blue(pageURL)}`);
+        // Emit beforeURLCrawled event to allow plugins to modify pageURL
+        let beforeURLCrawledResponse = await emitAsync('beforeURLCrawled', {pageURL});
+        pageURL = beforeURLCrawledResponse?.pageURL || pageURL;
 
+        console.log(`About to crawl: ${chalk.blue(pageURL)}`);
         /**
          * Make a single request to a page
          */
         try {
             // Visit page
-            const crawlResult = await crw.visitPage(pageURL, config);
+            let crawlResult = await crw.visitPage(pageURL, config);
+
+            // Emit afterURLCrawled event to allow plugins to modify pageData
+            let afterURLCrawledResponse = await emitAsync('afterURLCrawled', {crawlResult: crawlResult, pageURL: pageURL});
+            crawlResult = afterURLCrawledResponse?.crawlResult || crawlResult;
 
             // Assign responce to a responsePass variable
             responsePass = crawlResult;
         } catch (error) {
+            // Emit onCrawlError event
+            await emitAsync('onCrawlError', {responseError: error, pageURL: pageURL});
+
             // Flag error
             errorResponse = true;
 
@@ -32,6 +43,10 @@ const crw = {
         } finally {
             // Build page data object
             let pageData = crw.buildPageData(responsePass, errorResponse, pageURL, appData.counter, config?.linksToLowercase || false);
+
+            // Emit afterPageDataCreated event to allow plugins to modify pageData
+            let afterPageDataCreatedResponse = await emitAsync('afterPageDataCreated', {pageData});
+            pageData = afterPageDataCreatedResponse?.pageData || pageData;
 
             // Build custom response object
             if (config.custom.useCustom) {
@@ -48,8 +63,15 @@ const crw = {
 
             // Work on pagesToVisit only if crawled url matches pattern
             if (crw.checkConfigConditions(pageURL, config.allowLinksFrom)) {
-                // Add new links to list if it matches config.allowLinksFromPatter pattern
-                crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) => appData.pagesToVisit.add(url));
+                // Generate new links to list if it matches config.allowLinksFromPatter pattern
+                let pagesToVisitSet = crw.updateCrawlList(pageData.links, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config);
+
+                // Emit beforePagesToVisitUpdated event to allow plugins to modify pagesToVisit
+                let beforePagesToVisitUpdatedResponse = await emitAsync('beforePagesToVisitUpdated', {pagesToVisitSet: pagesToVisitSet, pageURL: pageURL});
+                pagesToVisitSet = beforePagesToVisitUpdatedResponse?.pagesToVisitSet || pagesToVisitSet;
+
+                // Add new links to list
+                pagesToVisitSet.forEach((url) => appData.pagesToVisit.add(url));
             }
 
             // Remove currently visited page from list

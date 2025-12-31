@@ -4,10 +4,16 @@ const hlp = require('./modules/helpers');
 const crw = require('./modules/crawling');
 const {out, dumpDiscarder, saveStatus, createReport} = require('./modules/output');
 const {createAppData, appDateFromSaved} = require('./modules/appData');
+const {emitAsync} = require('./modules/plugins');
 
 // Load app settings
 const cwd = process.cwd();
 const settings = require(`${cwd}/sauron.settings.js`);
+
+// Initialize plugin system
+const {loadPlugins} = require('./modules/plugins');
+// hlp.createDirIfRequired(settings.pluginsDirectory);
+loadPlugins(settings.pluginsDirectory);
 
 // Load crawler config
 const config = hlp.readConfig(process.argv[2]);
@@ -37,6 +43,10 @@ const setup = async () => {
         sitemapData = [...new Set(sitemapData)];
         console.log(chalk.magenta(`Found: ${sitemapData.length} links in sitemap`));
 
+        // Emit afterSitemapLinksExtracted event to allow plugins to modify sitemapData
+        let afterSitemapLinksExtractedResponse = await emitAsync('afterSitemapLinksExtracted', {sitemapData});
+        sitemapData = afterSitemapLinksExtractedResponse?.sitemapData || sitemapData;
+
         // Validate all sitemap links and add to appData
         crw.updateCrawlList(sitemapData, appData.pagesToVisit, appData.visitedPages, appData.discardedPages, config).forEach((url) => appData.pagesToVisit.add(url));
     } else {
@@ -63,6 +73,10 @@ const setup = async () => {
         if (filteredFiles.length) {
             let saveFilePath = filteredFiles[filteredFiles.length - 1];
             let savedData = JSON.parse(fs.readFileSync(`${settings.saveDirectory}/${config.id}/${saveFilePath}`));
+
+            // Emit afterSaveFileRead event to allow plugins to modify savedData
+            let afterSaveFileReadResponse = await emitAsync('afterSaveFileRead', {savedData});
+            savedData = afterSaveFileReadResponse?.savedData || savedData;
 
             // Rewrite data from save file
             if (!savedData.finished) {
@@ -121,6 +135,10 @@ const finishCrawl = () => {
 const crawl = async () => {
     // There is something to crawl AND (limit not reached OR there is no limit)
     if (appData.pagesToVisit.size && (appData.counter.limit >= appData.counter.crawled || appData.counter.limit === -1)) {
+        // Emit beforeEachCrawlCycle event to allow plugins to modify appData before crawling starts
+        let beforeCrawlCycleResponse = await emitAsync('beforeEachCrawlCycle', {appData});
+        appData = beforeCrawlCycleResponse?.appData || appData;
+
         // First request
         let pageURL = appData.pagesToVisit.values().next().value;
 
@@ -128,7 +146,7 @@ const crawl = async () => {
         let urls = [pageURL].concat(hlp.getNextNUrls(appData.pagesToVisit, config.requestCount - 1));
 
         // Wait for all requests to be resolved
-        Promise.all(hlp.buildCrawlPromisArray(urls, crw.singleCrawl, config, appData, custom)).then(() => {
+        Promise.all(hlp.buildCrawlPromisArray(urls, crw.singleCrawl, config, appData, custom)).then(async () => {
             // Save progress if required
             if (appData.saveRequired) {
                 // Change flag
@@ -136,6 +154,10 @@ const crawl = async () => {
 
                 // Add custom data to appData for save
                 appData.customData = custom?.data || [];
+
+                // Emit beforeSaveStatus event to allow plugins to modify appData before saving
+                let beforeSaveStatusResponse = await emitAsync('beforeSaveStatus', {appData});
+                appData = beforeSaveStatusResponse?.appData || appData;
 
                 // Save status
                 saveStatus(config, appData);

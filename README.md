@@ -129,7 +129,15 @@ module.exports = {
 | ```timeout```      | ```number```  | Single request timeout in ms   |
 | ```linksToLowercase```      | ```boolean```  | Make all links to crawl lowercase   |
 
+## Plugins
+
+Sauron supports an event-based plugin system that allows you to extend and modify the crawler's behavior without changing the core codebase. Plugins are loaded automatically from the `pluginsDirectory` specified in `sauron.settings.js`.
+
+For complete plugin documentation, including all available events, examples, and best practices, see [PLUGINS.md](PLUGINS.md).
+
 ## Changelog
+* v4.2.0
+    * add event based plugins
 * v4.1.0
     * add "urlTransformFunc" option to config - this is a function that each URL found on the page will go through before adding to list of urls to crawl. Use cases:
         * there is a need for some complex modification of it

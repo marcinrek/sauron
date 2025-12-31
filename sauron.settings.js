@@ -7,4 +7,5 @@ module.exports = {
     customDirectory: './custom/',
     outputDirectory: './output/',
     saveDirectory: './save/',
+    pluginsDirectory: './plugins/',
 };
