@@ -26,6 +26,7 @@ module.exports = {
     customDirectory: './crawler/custom/',
     outputDirectory: './crawler/output/',
     saveDirectory: './crawler/save/',
+    pluginsDirectory: './crawler/plugins/',
 };
 ```
 
@@ -53,6 +54,11 @@ module.exports = {
         "useCustom": true,
         "customFile": "custom.blank"
     },
+    // !important: When using a regex in allowedDomains do no use a "g" flag
+    // Using the g flag with a reused regex in JavaScript can make you lose
+    // matches because it makes the regex stateful via lastIndex, so each new
+    // call starts matching from where the previous one left off instead of
+    // from the beginning of the string.
     "allowedDomains": [
         "example.com",
         "test.example.com"
@@ -111,7 +117,7 @@ module.exports = {
 | ```output```      | ```string```  | Crawl output method. Allowed values: ```console```, ```csv ```, ```json ```, ```blank ```        |
 | ```storeDefaultData```      | ```boolean```  | Store default 'output' data with links, statusCodes etc - can be disabled when output is set to 'blank'        |
 | ```custom```      | ```object```  | Custom parsing actions settings        |
-| ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check.               |
+| ```allowedDomains```        | ```array```  | Only domains from this array will be crawled. Empty array will discard this check. Can be a string or a regex               |
 | ```allowedProtocols```       | ```array```  | Page protocols to crawl. Allowed values: ```http```, ```https```. Empty array will discard this check.   |
 | ```dedupeProtocol```        | ```boolean```  | De-duplicate links based on protocol.               |
 | ```allowLinksFrom```       | ```object```  | Only links that are found on a urls that match given requirements will be crawled.   |
@@ -136,6 +142,8 @@ Sauron supports an event-based plugin system that allows you to extend and modif
 For complete plugin documentation, including all available events, examples, and best practices, see [PLUGINS.md](PLUGINS.md).
 
 ## Changelog
+* v4.2.1
+    * doc fixes
 * v4.2.0
     * add event based plugins
 * v4.1.0
